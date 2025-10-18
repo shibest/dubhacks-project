@@ -11,12 +11,12 @@ app.use(express.json());
 
 const TRAKT_CLIENT_ID = process.env.TRAKT_CLIENT_ID;
 const TRAKT_CLIENT_SECRET = process.env.TRAKT_CLIENT_SECRET;
-const TRAKT_REDIRECT_URI = 'http://localhost:5173/callback';
+const TRAKT_REDIRECT_URI = 'https://myceli.us/callback';
 const TRAKT_API_BASE = 'https://api.trakt.tv';
 
 const SPOTIFY_CLIENT_ID = process.env.SPOTIFY_CLIENT_ID;
 const SPOTIFY_CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET;
-const SPOTIFY_REDIRECT_URI = 'http://127.0.0.1:5173/spotify/callback';
+const SPOTIFY_REDIRECT_URI = 'https://myceli.us/spotify/callback';
 const SPOTIFY_API_BASE = 'https://api.spotify.com/v1';
 
 interface TokenRequestBody {

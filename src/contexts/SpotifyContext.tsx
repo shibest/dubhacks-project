@@ -38,8 +38,8 @@ export const SpotifyProvider = ({ children }: SpotifyProviderProps) => {
   const [isAuthenticated, setIsAuthenticated] = useState(!!accessToken);
 
   const SPOTIFY_CLIENT_ID = import.meta.env.VITE_SPOTIFY_CLIENT_ID;
-  const REDIRECT_URI = 'http://127.0.0.1:5173/spotify/callback';
-  const BACKEND_URL = 'http://127.0.0.1:5000';
+  const REDIRECT_URI = 'https://myceli.us/spotify/callback';
+  const BACKEND_URL = 'https://myceli.us';
 
   // Spotify scopes - request permissions for user data
   const SCOPES = [

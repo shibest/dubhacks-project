@@ -1,4 +1,4 @@
-const BACKEND_URL = 'http://127.0.0.1:5000';
+const BACKEND_URL = 'https://myceli.us';
 
 export const getSpotifyData = async <T = any>(endpoint: string, accessToken: string | null): Promise<T> => {
   const response = await fetch(`${BACKEND_URL}/api/spotify${endpoint}`, {
