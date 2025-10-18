@@ -1,14 +1,22 @@
-// Edit and redesign based on preferences
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { getUserWatchlist } from '../api/trakt';
 
+interface Show {
+  title: string;
+  overview: string;
+}
+
+interface WatchlistItem {
+  id: number;
+  show: Show;
+}
+
 function UserWatchlist() {
   const { accessToken, refreshAccessToken, isAuthenticated, login } = useAuth();
-  const [watchlist, setWatchlist] = useState([]);
+  const [watchlist, setWatchlist] = useState<WatchlistItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -18,7 +26,7 @@ function UserWatchlist() {
         const data = await getUserWatchlist(accessToken);
         setWatchlist(data);
       } catch (err) {
-        if (err.message === 'TOKEN_EXPIRED') {
+        if (err instanceof Error && err.message === 'TOKEN_EXPIRED') {
           const refreshed = await refreshAccessToken();
           if (refreshed) {
             // Retry the request
@@ -26,7 +34,7 @@ function UserWatchlist() {
             setWatchlist(data);
           }
         } else {
-          setError(err.message);
+          setError(err instanceof Error ? err.message : 'An error occurred');
         }
       } finally {
         setLoading(false);

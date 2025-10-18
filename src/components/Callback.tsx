@@ -1,5 +1,3 @@
-// Edit and redesign based on preferences
-
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -17,7 +15,7 @@ function Callback() {
         if (success) {
           navigate('/dashboard');
         } else {
-          navigate('/login');
+          navigate('/');
         }
       });
     }

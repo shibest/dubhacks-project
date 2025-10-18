@@ -1,22 +1,45 @@
-// Edit and redesign based on preferences
+import { createContext, useContext, useState, ReactNode } from 'react';
 
-import { createContext, useContext, useState, useEffect } from 'react';
+interface AuthContextType {
+  isAuthenticated: boolean;
+  accessToken: string | null;
+  login: () => void;
+  logout: () => void;
+  handleCallback: (code: string) => Promise<boolean>;
+  refreshAccessToken: () => Promise<boolean>;
+}
 
-const AuthContext = createContext();
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};
 
-export const AuthProvider = ({ children }) => {
-  const [accessToken, setAccessToken] = useState(
+interface AuthProviderProps {
+  children: ReactNode;
+}
+
+interface TokenResponse {
+  access_token: string;
+  refresh_token: string;
+}
+
+export const AuthProvider = ({ children }: AuthProviderProps) => {
+  const [accessToken, setAccessToken] = useState<string | null>(
     localStorage.getItem('trakt_access_token')
   );
-  const [refreshToken, setRefreshToken] = useState(
+  const [refreshToken, setRefreshToken] = useState<string | null>(
     localStorage.getItem('trakt_refresh_token')
   );
   const [isAuthenticated, setIsAuthenticated] = useState(!!accessToken);
 
-  const TRAKT_CLIENT_ID = process.env.TRAKT_CLIENT_ID;
-  const REDIRECT_URI = 'http://localhost:3000/callback';
+  // For Vite, use import.meta.env instead of process.env
+  const TRAKT_CLIENT_ID = import.meta.env.VITE_TRAKT_CLIENT_ID;
+  const REDIRECT_URI = 'http://localhost:5173/callback';
   const BACKEND_URL = 'http://localhost:5000';
 
   // Initiate OAuth flow
@@ -26,7 +49,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   // Exchange code for tokens
-  const handleCallback = async (code) => {
+  const handleCallback = async (code: string): Promise<boolean> => {
     try {
       const response = await fetch(`${BACKEND_URL}/api/auth/token`, {
         method: 'POST',
@@ -34,15 +57,15 @@ export const AuthProvider = ({ children }) => {
         body: JSON.stringify({ code })
       });
 
-      const data = await response.json();
-      
+      const data: TokenResponse = await response.json();
+
       setAccessToken(data.access_token);
       setRefreshToken(data.refresh_token);
       setIsAuthenticated(true);
-      
+
       localStorage.setItem('trakt_access_token', data.access_token);
       localStorage.setItem('trakt_refresh_token', data.refresh_token);
-      
+
       return true;
     } catch (error) {
       console.error('Authentication failed:', error);
@@ -51,7 +74,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   // Refresh access token
-  const refreshAccessToken = async () => {
+  const refreshAccessToken = async (): Promise<boolean> => {
     try {
       const response = await fetch(`${BACKEND_URL}/api/auth/refresh`, {
         method: 'POST',
@@ -59,11 +82,11 @@ export const AuthProvider = ({ children }) => {
         body: JSON.stringify({ refresh_token: refreshToken })
       });
 
-      const data = await response.json();
-      
+      const data: TokenResponse = await response.json();
+
       setAccessToken(data.access_token);
       localStorage.setItem('trakt_access_token', data.access_token);
-      
+
       return true;
     } catch (error) {
       console.error('Token refresh failed:', error);
