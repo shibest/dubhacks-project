@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install -D tailwindcss postcss autoprefixer @tailwindcss/typography)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

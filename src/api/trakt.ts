@@ -19,9 +19,23 @@ export const getTraktData = async <T = any>(endpoint: string, accessToken: strin
   return response.json();
 };
 
-// Example: Get user's watchlist
-export const getUserWatchlist = (accessToken: string | null) => {
+// Get user's watchlist shows
+export const getUserWatchlistShows = (accessToken: string | null) => {
   return getTraktData('/sync/watchlist/shows', accessToken);
+};
+
+// Get user's watchlist movies
+export const getUserWatchlistMovies = (accessToken: string | null) => {
+  return getTraktData('/sync/watchlist/movies', accessToken);
+};
+
+// Get complete watchlist (shows + movies)
+export const getUserWatchlist = async (accessToken: string | null) => {
+  const [shows, movies] = await Promise.all([
+    getUserWatchlistShows(accessToken),
+    getUserWatchlistMovies(accessToken)
+  ]);
+  return { shows, movies };
 };
 
 // Example: Get user's watched history

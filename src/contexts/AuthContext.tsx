@@ -57,8 +57,20 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         body: JSON.stringify({ code })
       });
 
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Token exchange failed:', errorData);
+        return false;
+      }
+
       const data: TokenResponse = await response.json();
 
+      if (!data.access_token || !data.refresh_token) {
+        console.error('Invalid token response:', data);
+        return false;
+      }
+
+      console.log('Tokens received successfully');
       setAccessToken(data.access_token);
       setRefreshToken(data.refresh_token);
       setIsAuthenticated(true);
@@ -75,12 +87,25 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   // Refresh access token
   const refreshAccessToken = async (): Promise<boolean> => {
+    if (!refreshToken) {
+      console.error('No refresh token available');
+      logout();
+      return false;
+    }
+
     try {
       const response = await fetch(`${BACKEND_URL}/api/auth/refresh`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ refresh_token: refreshToken })
       });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Token refresh failed:', errorData);
+        logout();
+        return false;
+      }
 
       const data: TokenResponse = await response.json();
 
