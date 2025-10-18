@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useSpotify } from '../contexts/SpotifyContext';
+import { useSpotify } from '../contexts/ApiContext';
 import {
   getUserProfile,
   getUserTopArtists,

@@ -32,6 +32,4 @@ dist-ssr
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 
-CLAUDE.md
-MERGE_SUMMARY.md
-SPOTIFY_SETUP.md
+*.md
