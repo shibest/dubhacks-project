@@ -37,14 +37,17 @@ export default function Index() {
       className={`flex flex-col min-h-screen bg-[hsl(var(--background))] transition-opacity duration-500 ${
         isVisible ? "opacity-100" : "opacity-0"
       }`}
+      style={{ paddingTop: 0 }}
     >
       <Header
         onCommunityClick={handleCommunityClick}
         onProfileClick={handleProfileClick}
       />
 
-      <main className="flex-1">
-        <Feed onAddFriend={handleAddFriend} />
+      <main className="flex-1 overflow-hidden">
+        <div className="h-full overflow-y-auto">
+          <Feed onAddFriend={handleAddFriend} />
+        </div>
       </main>
 
       <BottomTaskbar onNavigate={handleNavigate} />
