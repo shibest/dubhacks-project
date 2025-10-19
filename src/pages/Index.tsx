@@ -70,6 +70,8 @@ export default function Index() {
   const handleNavigate = (tab: string) => {
     if (tab === "friends") {
       navigate("/friends");
+    } else if (tab === "games") {
+      navigate("/games");
     } else if (tab === "home") {
       // Already on home
     } else {
