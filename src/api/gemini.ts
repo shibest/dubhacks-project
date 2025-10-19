@@ -71,7 +71,7 @@ export async function generateProfileSummary(profileData: ProfileSummaryData): P
     prompt += `\nCreate a concise, friendly profile summary that captures this person's interests and personality. Be casual and engaging. Keep it to 2-3 sentences maximum.`;
 
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash-lite",
+      model: "gemini-2.0-flash-lite",
       contents: prompt,
     });
 
