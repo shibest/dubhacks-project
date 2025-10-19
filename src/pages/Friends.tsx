@@ -6,6 +6,8 @@ import { Profile } from "@/components/ProfileCard";
 import { getCurrentUserId, getFriends, removeFriend } from "@/lib/friends";
 import { updateFriendsCount } from "@/lib/leaderboard";
 
+// SAMPLE_FRIENDS removed - now using real users from friends.ts
+
 export default function Friends() {
   const navigate = useNavigate();
   const [isVisible, setIsVisible] = useState(false);
@@ -13,10 +15,14 @@ export default function Friends() {
   const [loading, setLoading] = useState(true);
   const [selectedCommunity, setSelectedCommunity] = useState("All Communities");
 
+  // Force re-render when friends are added/removed to update UI immediately
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const triggerUpdate = () => setRefreshTrigger(prev => prev + 1);
+
   useEffect(() => {
     setIsVisible(true);
     loadFriends();
-  }, []);
+  }, [refreshTrigger]);
 
   const loadFriends = async () => {
     const currentUserId = getCurrentUserId();
@@ -55,8 +61,8 @@ export default function Friends() {
 
   const handleCommunityChange = (community: string) => {
     setSelectedCommunity(community);
-    // Reload friends with new community filter
-    loadFriends();
+    // Force reload friends with new community filter
+    setRefreshTrigger(prev => prev + 1);
   };
 
   const handleProfileClick = () => {

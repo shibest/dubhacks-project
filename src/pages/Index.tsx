@@ -139,7 +139,8 @@ export default function Index() {
 
   const handleCommunityChange = (community: string) => {
     setSelectedCommunity(community);
-    // No need to reload - filtering happens in render
+    // Force reload users with new community filter
+    setRefreshTrigger(prev => prev + 1);
   };
 
   const handleProfileClick = () => {
@@ -220,22 +221,11 @@ export default function Index() {
               ) : (
                 <div className="space-y-3 md:space-y-4">
                   {allUsers
-                    .filter(user => {
-                      // Community filter
-                      if (selectedCommunity !== "All Communities") {
-                        const userCommunities = (user as any).communities || [];
-                        if (!userCommunities.includes(selectedCommunity)) {
-                          return false;
-                        }
-                      }
-                      // Search filter
-                      if (searchQuery !== "") {
-                        const query = searchQuery.toLowerCase();
-                        return user.username.toLowerCase().includes(query) ||
-                               user.bio.toLowerCase().includes(query);
-                      }
-                      return true;
-                    })
+                    .filter(user =>
+                      searchQuery === "" ||
+                      user.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                      user.bio.toLowerCase().includes(searchQuery.toLowerCase())
+                    )
                     .slice(0, 10)
                     .map((user) => (
                       <ProfileCard
