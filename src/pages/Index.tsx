@@ -5,6 +5,7 @@ import Feed from "@/components/Feed";
 import BottomTaskbar from "@/components/BottomTaskbar";
 import { getAllUsers, getCurrentUserId, getFriends } from "@/lib/friends";
 import ProfileCard, { Profile } from "@/components/ProfileCard";
+import { updateFriendsCount } from "@/lib/leaderboard";
 
 export default function Index() {
   const navigate = useNavigate();
@@ -58,6 +59,13 @@ export default function Index() {
     // Keep the user in the dashboard list but mark as added
     // The ProfileCard component will handle showing "Friend Added!" state
     triggerUpdate();
+
+    // Update friends count in leaderboard
+    const currentUserId = getCurrentUserId();
+    if (currentUserId) {
+      const updatedFriends = await getFriends(currentUserId);
+      updateFriendsCount(updatedFriends.length);
+    }
   };
 
   const handleCommunityClick = () => {
@@ -76,6 +84,8 @@ export default function Index() {
       navigate("/games");
     } else if (tab === "settings") {
       navigate("/settings");
+    } else if (tab === "leaderboard") {
+      navigate("/leaderboard");
     } else if (tab === "home") {
       // Already on home
     } else {

@@ -29,6 +29,8 @@ export default function Games() {
       navigate("/friends");
     } else if (tab === "settings") {
       navigate("/settings");
+    } else if (tab === "leaderboard") {
+      navigate("/leaderboard");
     } else {
       console.log("Navigate to:", tab);
     }
@@ -195,7 +197,7 @@ export default function Games() {
               <div className="mb-8">
                 <div className="grid grid-cols-2 gap-4 md:gap-6">
                   <div
-                    onClick={() => console.log("Leaderboards clicked")}
+                    onClick={() => navigate("/leaderboard")}
                     className="bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl md:rounded-3xl p-6 text-white cursor-pointer hover:shadow-xl transition-all duration-300 hover:scale-105 shadow-lg"
                   >
                     <div className="flex items-center gap-4">

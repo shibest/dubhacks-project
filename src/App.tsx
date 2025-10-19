@@ -14,6 +14,7 @@ import Index from './pages/Index';
 import Friends from './pages/Friends';
 import Games from './pages/Games';
 import Settings from './pages/Settings';
+import Leaderboard from './pages/Leaderboard';
 import GameAnim from './pages/GameAnim';
 import Chat from './pages/Chat';
 import HotTakesAnim from './pages/games/HotTakesAnim';
@@ -78,6 +79,8 @@ function App() {
               <Route path="/games" element={<Games />} />
               {/* Settings screen */}
               <Route path="/settings" element={<Settings />} />
+              {/* Leaderboard screen */}
+              <Route path="/leaderboard" element={<Leaderboard />} />
               {/* Game animation screen */}
               <Route path="/gameanim" element={<GameAnim />} />
               {/* Chat screen */}

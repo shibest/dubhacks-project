@@ -4,6 +4,7 @@ import { Send, ArrowLeft, FileText, UserPlus, X } from "lucide-react";
 import { generateGamePrompt, generatePersonalityHotTake, generatePersonalityResponse } from "@/api/gemini";
 import { User, getLocalStorageUsers } from "@/lib/supabase";
 import { getCurrentUserId, addFriend, areFriends } from "@/lib/friends";
+import { completeHotTakesGame } from "@/lib/leaderboard";
 
 interface Message {
   id: string;
@@ -316,6 +317,15 @@ export default function HotTakesChat() {
 
   const handleBackToGames = () => {
     saveCurrentConversation();
+
+    // Award points for completing the game (only if conversation started)
+    if (gamePhase === 'conversation' && messages.length > 4) {
+      // Base score of 100 points, plus 10 points per message exchanged
+      const messageBonus = Math.max(0, messages.length - 4) * 10;
+      const totalScore = 100 + messageBonus;
+      completeHotTakesGame(true, totalScore);
+    }
+
     navigate("/games");
   };
 

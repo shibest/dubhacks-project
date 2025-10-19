@@ -70,6 +70,8 @@ export default function Settings() {
       navigate("/home");
     } else if (tab === "settings") {
       // Already on settings
+    } else if (tab === "leaderboard") {
+      navigate("/leaderboard");
     } else {
       console.log("Navigate to:", tab);
     }
