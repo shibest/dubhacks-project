@@ -11,6 +11,7 @@ import Login from './pages/Login';
 import Connections from './pages/Connections';
 import Profile from './pages/Profile';
 import Index from './pages/Index';
+import Friends from './pages/Friends';
 
 // Unified callback component
 import ApiCallback from './components/ApiCallback';
@@ -47,6 +48,8 @@ function App() {
               <Route path="/dashboard" element={<Index />} />
               {/* /home also shows dashboard */}
               <Route path="/home" element={<Index />} />
+              {/* Friends screen */}
+              <Route path="/friends" element={<Friends />} />
 
               {/* Trakt routes */}
               <Route path="/callback" element={<ApiCallback service="trakt" />} />

@@ -1,5 +1,6 @@
 import { UserPlus } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { getCurrentUserId, areFriends, addFriend } from "../lib/friends";
 
 export interface Profile {
   id: string;
@@ -12,7 +13,7 @@ export interface Profile {
 
 interface ProfileCardProps {
   profile: Profile;
-  onAddFriend: (profileId: string) => void;
+  onAddFriend?: (profileId: string) => void;
 }
 
 export default function ProfileCard({
@@ -20,15 +21,52 @@ export default function ProfileCard({
   onAddFriend,
 }: ProfileCardProps) {
   const [isAdded, setIsAdded] = useState(false);
+  const [isFriend, setIsFriend] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const handleAddFriend = () => {
-    setIsAdded(true);
-    onAddFriend(profile.id);
-    setTimeout(() => setIsAdded(false), 2000);
+  useEffect(() => {
+    const checkFriendship = async () => {
+      const currentUserId = getCurrentUserId();
+      if (currentUserId && currentUserId !== profile.id) {
+        const friendStatus = await areFriends(currentUserId, profile.id);
+        setIsFriend(friendStatus);
+      } else {
+        // If no current user, assume not friends
+        setIsFriend(false);
+      }
+    };
+    checkFriendship();
+  }, [profile.id]);
+
+  const handleAddFriend = async () => {
+    const currentUserId = getCurrentUserId();
+    console.log('Current user ID:', currentUserId);
+    console.log('Adding friend:', profile.id);
+
+    if (!currentUserId || loading) {
+      console.log('Cannot add friend: no current user or loading');
+      return;
+    }
+
+    setLoading(true);
+    console.log('Calling addFriend...');
+    const success = await addFriend(currentUserId, profile.id);
+    console.log('Add friend result:', success);
+
+    if (success) {
+      console.log('Friend added successfully');
+      setIsAdded(true);
+      setIsFriend(true);
+      onAddFriend?.(profile.id);
+      // Keep the "Friend Added!" state permanently
+    } else {
+      console.log('Failed to add friend');
+    }
+    setLoading(false);
   };
 
   return (
-    <div className="bg-[hsl(var(--card))] rounded-2xl md:rounded-3xl p-4 md:p-6 border border-[hsl(var(--border))] hover:border-[hsl(var(--accent))] transition-all duration-300 hover:shadow-xl shadow-md">
+    <div className="bg-[hsl(var(--card))] rounded-2xl md:rounded-3xl p-4 md:p-6 border border-[hsl(var(--border))] hover:border-[hsl(var(--primary))] transition-all duration-300 hover:shadow-xl shadow-md">
       {/* Avatar and Content Container */}
       <div className="flex gap-3 md:gap-5 mb-4 md:mb-5">
         {/* Avatar - Left */}
@@ -63,19 +101,21 @@ export default function ProfileCard({
       </div>
 
       {/* Add Friend Button - Full Width Below */}
-      <button
-        onClick={handleAddFriend}
-        disabled={isAdded}
-        className={`w-full py-2.5 md:py-3 rounded-lg md:rounded-xl font-semibold flex items-center justify-center gap-2 transition-all duration-200 shadow-md hover:shadow-lg text-sm md:text-base ${
-          isAdded
-            ? "bg-[hsl(var(--primary))]/20 text-[hsl(var(--primary))] border border-[hsl(var(--primary))]/30"
-            : "bg-gradient-to-r from-[hsl(280,95%,52%)] to-[hsl(180,85%,48%)] hover:from-[hsl(280,95%,47%)] hover:to-[hsl(180,85%,43%)] text-white"
-        }`}
-      >
-        <UserPlus size={18} className="md:hidden" />
-        <UserPlus size={20} className="hidden md:block" />
-        {isAdded ? "Added!" : "Add Friend"}
-      </button>
+      {!isFriend && (
+        <button
+          onClick={handleAddFriend}
+          disabled={isAdded || loading}
+          className={`w-full py-2.5 md:py-3 rounded-lg md:rounded-xl font-semibold flex items-center justify-center gap-2 transition-all duration-200 shadow-md hover:shadow-lg text-sm md:text-base ${
+            isAdded
+              ? "bg-[hsl(var(--primary))]/20 text-[hsl(var(--primary))] border border-[hsl(var(--primary))]/30"
+              : "bg-gradient-to-r from-[hsl(280,95%,52%)] to-[hsl(180,85%,48%)] hover:from-[hsl(280,95%,47%)] hover:to-[hsl(180,85%,43%)] text-white"
+          }`}
+        >
+          <UserPlus size={18} className="md:hidden" />
+          <UserPlus size={20} className="hidden md:block" />
+          {loading ? "Adding..." : isAdded ? "Friend Added!" : "Add Friend"}
+        </button>
+      )}
     </div>
   );
 }
