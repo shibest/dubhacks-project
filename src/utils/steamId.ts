@@ -72,7 +72,7 @@ export async function extractSteamId(input: string): Promise<{ id: string | null
 async function resolveVanityUrl(vanityUrl: string): Promise<{ id: string | null; error?: string }> {
   try {
     const response = await fetch(
-      `${BACKEND_URL}/api/steam/resolve/${vanityUrl}`
+      `${BACKEND_URL}/steam/resolve/${vanityUrl}`
     );
 
     if (!response.ok) {
