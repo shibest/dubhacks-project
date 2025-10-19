@@ -231,7 +231,7 @@ export default function EmojiStoryChat() {
               <div
                 className={`max-w-xs lg:max-w-md px-4 py-2 rounded-2xl shadow-md ${
                   message.sender === 'user'
-                    ? 'bg-gradient-to-r from-yellow-400 via-pink-400 to-purple-500 text-white rounded-br-sm'
+                    ? 'bg-gradient-to-r from-yellow-400 via-pink-400 to-purple-500 text-gray-900 rounded-br-sm'
                     : 'bg-white text-gray-800 rounded-bl-sm border border-gray-200'
                 }`}
               >
