@@ -41,8 +41,8 @@ export default function Index() {
         .filter(user => user.id !== currentUserId && !friendIds.has(user.id))
         .filter(user => {
           if (selectedCommunity === "All Communities") return true;
-          // Filter by community - users are now assigned communities randomly
-          return (user as any).community === selectedCommunity;
+          // Filter by community - users have communities array
+          return (user as any).communities?.includes(selectedCommunity);
         })
         .map(user => ({
           id: user.id,

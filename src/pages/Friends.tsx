@@ -33,8 +33,8 @@ export default function Friends() {
         const profiles: Profile[] = friendsData
           .filter(user => {
             if (selectedCommunity === "All Communities") return true;
-            // Filter by community - users are now assigned communities randomly
-            return (user as any).community === selectedCommunity;
+            // Filter by community - users have communities array
+            return (user as any).communities?.includes(selectedCommunity);
           })
           .map(user => ({
             id: user.id,
