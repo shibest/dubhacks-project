@@ -68,8 +68,8 @@ export default function ProfileCard({
         disabled={isAdded}
         className={`w-full py-2.5 md:py-3 rounded-lg md:rounded-xl font-semibold flex items-center justify-center gap-2 transition-all duration-200 shadow-md hover:shadow-lg text-sm md:text-base ${
           isAdded
-            ? "bg-green-600/20 text-green-400 border border-green-600/30"
-            : "bg-gradient-to-r from-[hsl(260,80%,60%)] to-[hsl(280,90%,70%)] hover:from-[hsl(260,80%,55%)] hover:to-[hsl(280,90%,65%)] text-white"
+            ? "bg-[hsl(var(--primary))]/20 text-[hsl(var(--primary))] border border-[hsl(var(--primary))]/30"
+            : "bg-gradient-to-r from-[hsl(280,95%,52%)] to-[hsl(180,85%,48%)] hover:from-[hsl(280,95%,47%)] hover:to-[hsl(180,85%,43%)] text-white"
         }`}
       >
         <UserPlus size={18} className="md:hidden" />
