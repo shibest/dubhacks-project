@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Send, Image, Smile, Paperclip, ArrowLeft, FileText } from "lucide-react";
+import { generateGamePrompt, generateGameResponse } from "@/api/gemini";
 
 interface Message {
   id: string;
@@ -12,16 +13,52 @@ interface Message {
 
 export default function Chat() {
   const navigate = useNavigate();
+
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      text: 'Welcome to Hot Takes! Share your most controversial opinions here 🔥',
+      text: 'The Game Master is typing...',
       sender: 'other',
       timestamp: new Date(),
       type: 'text'
     }
   ]);
+
+  const [response, setResponse] = useState('');
+
+  useEffect(() => {
+    // This code will run only once after the initial render
+    const getGamePrompt = async () => {
+      try {
+        const prompt = await generateGamePrompt('hot_takes');
+
+        // Update the first message with the AI prompt
+        setMessages(prev => {
+          const updated = [...prev];
+          updated[0] = {
+            ...updated[0],
+            text: prompt
+          };
+          return updated;
+        });
+      } catch (error) {
+        console.error('Error generating game prompt:', error);
+
+        // Update with error message
+        setMessages(prev => {
+          const updated = [...prev];
+          updated[0] = {
+            ...updated[0],
+            text: 'Sorry, I had trouble loading the game. Please try again!'
+          };
+          return updated;
+        });
+      }
+    }
+    getGamePrompt();
+  }, []);
   const [newMessage, setNewMessage] = useState('');
+  const [sentMessages, setSentMessages] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
   const [showLogs, setShowLogs] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -36,6 +73,14 @@ export default function Chat() {
   const saveChatLogs = (logs: any[]) => {
     localStorage.setItem('hottakes_chat_logs', JSON.stringify(logs));
   };
+
+  const getGameResponse = async () => {
+    try {
+      setResponse(await generateGameResponse(messages[0].text, 'brash and indignant'));
+    } catch (error) {
+      console.error('Error generating game response:', error);
+    }
+  }
 
   // Save current conversation when leaving chat
   const saveCurrentConversation = () => {
@@ -79,29 +124,55 @@ export default function Chat() {
         timestamp: new Date(),
         type: 'text'
       };
+      setSentMessages(prevMessages => prevMessages + 1);
       setMessages(prev => [...prev, message]);
       setNewMessage('');
 
-      // Simulate response after a delay
-      setTimeout(() => {
-        const responses = [
-          "That's a bold take! 🔥",
-          "I respectfully disagree 😅",
-          "Wait, explain your reasoning!",
-          "This is getting heated! 🌶️",
-          "New phone, who dis? 📱",
-          "That's actually kinda based 💀"
-        ];
-        const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+      if (sentMessages == 0) {
         const responseMessage: Message = {
-          id: (Date.now() + 1).toString(),
-          text: randomResponse,
+          id: Date.now().toString(),
+          text: `Alright, the results are in! Here's what you said: ` + messages[1] +
+                `\nJust type /continue and I'll reveal other user's hot take!`,
           sender: 'other',
           timestamp: new Date(),
           type: 'text'
         };
         setMessages(prev => [...prev, responseMessage]);
-      }, 1000 + Math.random() * 2000);
+        getGameResponse();
+      }
+      if (sentMessages == 1) {
+        const otherMessage: Message = {
+          id: Date.now().toString(),
+          text: response,
+          sender: 'other',
+          timestamp: new Date(),
+          type: 'text'
+        };
+        setMessages(prev => [...prev, otherMessage]);
+      }
+      // Simulate response after a delay
+      if (sentMessages > 1) {
+          setTimeout(() => {
+          const responses = [
+            "That's a bold take! 🔥",
+            "I respectfully disagree 😅",
+            "Wait, explain your reasoning!",
+            "This is getting heated! 🌶️",
+            "New phone, who dis? 📱",
+            "That's actually kinda based 💀"
+          ];
+          const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+          const responseMessage: Message = {
+            id: (Date.now() + 1).toString(),
+            text: randomResponse,
+            sender: 'other',
+            timestamp: new Date(),
+            type: 'text'
+          };
+          setMessages(prev => [...prev, responseMessage]);
+        }, 1000 + Math.random() * 2000);
+      }
+      
     }
   };
 

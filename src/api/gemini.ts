@@ -71,7 +71,7 @@ export async function generateProfileSummary(profileData: ProfileSummaryData): P
     prompt += `\nCreate a concise, friendly profile summary that captures this person's interests and personality. Be casual and engaging. Keep it to 2-3 sentences maximum.`;
 
     const response = await ai.models.generateContent({
-      model: "gemini-2.0-flash-exp",
+      model: "gemini-2.5-flash-lite",
       contents: prompt,
     });
 
@@ -99,4 +99,68 @@ export function getCachedSummary(): string | null {
 // Clear cached summary
 export function clearCachedSummary(): void {
   localStorage.removeItem('ai_profile_summary');
+}
+
+export async function generateGamePrompt(game: string): Promise<string> {
+  try {
+    let prompt = `You are an enigmatic creative mastermind of a game prompt generator. `;
+    if (game === `hot_takes`) {
+      prompt += `Greet the users to the game 'Hot Takes', come up with and present to the users a topic up to three ` +
+                `words that is prone to have some hot takes, tell them write their hot take ` +
+                `and then press submit to submit their responses, and that both user's responses ` +
+                `will be revealed after both of them have submitted. This response should be no longer than 4 sentences ` +
+                `and not include special effects, only text that is speech.`;
+      const response = await ai.models.generateContent({
+        model: "gemini-2.0-flash-lite",
+        contents: prompt,
+      });
+
+      const summary = response.text;
+
+      if (!summary) {
+        throw new Error('No summary generated');
+      }
+
+      return summary.trim();
+    } else if (game === `emoji_story`) {
+
+    } else if (game === `two_truths_and_a_vibe`) {
+
+    } else if (game === `guilty_pleasure_guess`) {
+
+    } else if (game === `spicy_statements`) {
+
+    } else if (game === `first_best_forever`) {
+
+    } else if (game === `lets_rate_it`) {
+      
+    }
+    return '';
+  } catch (error) {
+    console.error('Error generating game prompt:', error);
+    throw error;
+  }
+
+}
+
+export async function generateGameResponse(gamePrompt: string, personality: string): Promise<string> {
+  try {
+    let prompt = `Given the following prompt, write a hot take that is about one sentence long that connects to the topic ` +
+                  ` in the prompt that reads like someone with a ` + personality + ` personality: ` + gamePrompt;
+    const response = await ai.models.generateContent({
+      model: "gemini-2.0-flash-lite",
+      contents: prompt,
+    });
+
+    const gameResponse = response.text;
+
+    if (!gameResponse) {
+      throw new Error('No game response generated');
+    }
+
+    return gameResponse.trim();
+  } catch (error) {
+    console.error('Error generating game prompt:', error);
+    throw error;
+  }
 }
