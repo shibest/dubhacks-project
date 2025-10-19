@@ -12,6 +12,7 @@ import { Music, Gamepad2, Plus, Tv, User, Camera, Sparkles, RefreshCw } from "lu
 interface ProfileData {
   username: string;
   profilePicture: string;
+  hobbies: string;
   musicGenres: string[];
   favoriteGames: string[];
   favoriteShows: string[];
@@ -56,6 +57,7 @@ export default function Profile() {
     return {
       username: '',
       profilePicture: '',
+      hobbies: '',
       musicGenres: [],
       favoriteGames: [],
       favoriteShows: [],
@@ -393,6 +395,20 @@ export default function Profile() {
                   className="w-full px-3 py-2 text-sm rounded-lg bg-[hsl(var(--input))] border border-[hsl(var(--border))] text-[hsl(var(--foreground))] placeholder-[hsl(var(--muted-foreground))] focus:outline-none focus:border-[hsl(var(--primary))] focus:ring-2 focus:ring-[hsl(var(--primary))]/20"
                 />
               </div>
+            </div>
+
+            {/* Hobbies */}
+            <div className="mt-4">
+              <label className="block text-sm font-medium text-[hsl(var(--foreground))] mb-2">
+                Favorite Hobbies
+              </label>
+              <textarea
+                value={profile.hobbies}
+                onChange={(e) => setProfile({ ...profile, hobbies: e.target.value })}
+                placeholder="Tell us about your favorite hobbies and activities (e.g., hiking, photography, cooking, reading...)"
+                rows={3}
+                className="w-full px-3 py-2 text-sm rounded-lg bg-[hsl(var(--input))] border border-[hsl(var(--border))] text-[hsl(var(--foreground))] placeholder-[hsl(var(--muted-foreground))] focus:outline-none focus:border-[hsl(var(--primary))] focus:ring-2 focus:ring-[hsl(var(--primary))]/20 resize-none"
+              />
             </div>
           </div>
         </div>

@@ -9,6 +9,8 @@ export interface Profile {
   avatar: string;
   bio: string;
   mutualFriends: number;
+  communities?: string[];
+  similarityScore?: number;
 }
 
 interface ProfileCardProps {

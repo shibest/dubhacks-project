@@ -42,9 +42,18 @@ export default function Friends() {
             username: user.username,
             avatar: user.username.substring(0, 2).toUpperCase(),
             bio: `Interests: ${user.interests.join(', ')}`,
-            mutualFriends: 0 // Could be calculated later
+            mutualFriends: 0, // Could be calculated later
+            communities: (user as any).communities || []
           }));
-        setFriends(profiles);
+
+        // Apply community filter
+        const filteredProfiles = selectedCommunity === "All Communities"
+          ? profiles
+          : profiles.filter(profile =>
+              profile.communities?.includes(selectedCommunity)
+            );
+
+        setFriends(filteredProfiles);
 
         // Update leaderboard friends count
         updateFriendsCount(profiles.length);
