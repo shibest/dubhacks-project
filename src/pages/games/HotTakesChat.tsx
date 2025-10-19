@@ -36,6 +36,7 @@ export default function HotTakesChat() {
   const [conversationHistory, setConversationHistory] = useState<Array<{ sender: string; text: string }>>([]);
   const [isFriend, setIsFriend] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [isPartnerReady, setIsPartnerReady] = useState(false);
 
   // Randomly select a user on mount
   useEffect(() => {
@@ -71,13 +72,24 @@ export default function HotTakesChat() {
 
         // Generate partner's hot take in the background
         if (randomUser.personality) {
-          const hotTake = await generatePersonalityHotTake(
-            prompt,
-            randomUser.personality,
-            randomUser.username,
-            randomUser.interests
-          );
-          setPartnerHotTake(hotTake);
+          try {
+            const hotTake = await generatePersonalityHotTake(
+              prompt,
+              randomUser.personality,
+              randomUser.username,
+              randomUser.interests
+            );
+            console.log('Generated partner hot take:', hotTake);
+            setPartnerHotTake(hotTake);
+            setIsPartnerReady(true);
+          } catch (error) {
+            console.error('Error generating partner hot take:', error);
+            setPartnerHotTake("I'm honestly not sure what to think about that!");
+            setIsPartnerReady(true);
+          }
+        } else {
+          setPartnerHotTake("I'm honestly not sure what to think about that!");
+          setIsPartnerReady(true);
         }
 
         // Update messages with the game prompt
@@ -189,9 +201,14 @@ export default function HotTakesChat() {
         }]);
 
         setTimeout(() => {
+          // Make sure we have the partner's hot take - use stored value
+          const hotTakeToShow = partnerHotTake || "I have some thoughts on this too!";
+          console.log('Displaying partner hot take:', hotTakeToShow);
+          console.log('Partner hot take state value:', partnerHotTake);
+
           setMessages(prev => [...prev, {
             id: (Date.now() + 1).toString(),
-            text: partnerHotTake,
+            text: hotTakeToShow,
             sender: 'other',
             timestamp: new Date(),
             type: 'text'
@@ -201,7 +218,7 @@ export default function HotTakesChat() {
           setGamePhase('conversation');
           setConversationHistory([
             { sender: 'user', text: messageText },
-            { sender: 'other', text: partnerHotTake }
+            { sender: 'other', text: hotTakeToShow }
           ]);
 
           // Generate initial conversation starter from the matched user
@@ -213,9 +230,9 @@ export default function HotTakesChat() {
                 matchedUser.interests,
                 [
                   { sender: 'user', text: messageText },
-                  { sender: 'other', text: partnerHotTake }
+                  { sender: 'other', text: hotTakeToShow }
                 ],
-                `What do you think about my take? I'm curious about your perspective!`
+                messageText
               );
 
               const aiMessage: Message = {
@@ -577,7 +594,7 @@ export default function HotTakesChat() {
                     ? "Reply to the conversation..."
                     : "Loading..."
                 }
-                disabled={gamePhase === 'loading' || gamePhase === 'revealing'}
+                disabled={gamePhase === 'loading' || gamePhase === 'revealing' || (gamePhase === 'user-response' && !isPartnerReady)}
                 className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl resize-none focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent disabled:opacity-50"
                 rows={1}
                 style={{ minHeight: '44px', maxHeight: '120px' }}

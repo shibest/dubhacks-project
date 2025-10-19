@@ -17,6 +17,7 @@ export interface User {
   email?: string
   interests: string[]
   personality?: string
+  communities?: string[]
   created_at?: string
 }
 
