@@ -116,6 +116,9 @@ export default function Profile() {
           ...profile,
           profilePicture: reader.result as string
         });
+
+        // Dispatch custom event to notify Header component
+        window.dispatchEvent(new Event('profileUpdated'));
       };
       reader.readAsDataURL(file);
     }
