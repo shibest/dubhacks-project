@@ -66,27 +66,8 @@ export default function Index() {
       console.log('All users:', users);
       console.log('Current friends:', friendIds);
 
-<<<<<<< HEAD
-      // Convert User[] to Profile[] and exclude current user and existing friends
-      const profiles: Profile[] = users
-        .filter(user => user.id !== currentUserId && !friendIds.has(user.id))
-        .filter(user => {
-          if (selectedCommunity === "All Communities") return true;
-          // Filter by community - users have communities array
-          return (user as any).communities?.includes(selectedCommunity);
-        })
-        .map(user => ({
-          id: user.id,
-          name: user.username,
-          username: user.username,
-          avatar: user.username.substring(0, 2).toUpperCase(),
-          bio: `Interests: ${user.interests.join(', ')}`,
-          mutualFriends: 0
-        }));
-=======
       // Filter users and calculate similarity scores
       const filteredUsers = users.filter(user => user.id !== currentUserId && !friendIds.has(user.id));
->>>>>>> 251e285a9195a3be727298c8ae20f01a4140f4b1
 
       // Calculate similarity scores for each user
       const usersWithScores = await Promise.all(
@@ -135,8 +116,15 @@ export default function Index() {
         similarityScore // Store the score
       }));
 
-      console.log('Loaded and sorted profiles by similarity:', profiles);
-      setAllUsers(profiles);
+      // Apply community filter after similarity calculation
+      const filteredProfiles = profiles.filter(user => {
+        if (selectedCommunity === "All Communities") return true;
+        // Filter by community - users have communities array
+        return user.communities?.includes(selectedCommunity);
+      });
+
+      console.log('Loaded and sorted profiles by similarity:', filteredProfiles);
+      setAllUsers(filteredProfiles);
     } catch (error) {
       console.error('Error loading users:', error);
     }
@@ -245,7 +233,7 @@ export default function Index() {
                       user.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
                       user.bio.toLowerCase().includes(searchQuery.toLowerCase())
                     )
-                    .slice(0, 10)
+                    .slice(0, 50)
                     .map((user) => (
                       <ProfileCard
                         key={user.id}
