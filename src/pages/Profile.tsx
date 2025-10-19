@@ -5,8 +5,9 @@ import { extractSteamId } from "../utils/steamId";
 import { getPlayerSummary, getOwnedGames } from "../api/steam";
 import { getUserTopArtists, getUserTopTracks } from "../api/spotify";
 import { getUserWatchlist } from "../api/trakt";
+import { generateProfileSummary, getCachedSummary } from "../api/gemini";
 import MyceliumLogo from "@/components/MyceliumLogo";
-import { Music, Gamepad2, Plus, Tv, User, Camera } from "lucide-react";
+import { Music, Gamepad2, Plus, Tv, User, Camera, Sparkles, RefreshCw } from "lucide-react";
 
 interface ProfileData {
   username: string;
@@ -76,6 +77,11 @@ export default function Profile() {
   const [steamLoading, setSteamLoading] = useState(false);
   const [steamError, setSteamError] = useState<string | null>(null);
 
+  // AI Summary states
+  const [aiSummary, setAiSummary] = useState<string>("");
+  const [summaryLoading, setSummaryLoading] = useState(false);
+  const [summaryError, setSummaryError] = useState<string | null>(null);
+
   useEffect(() => {
     setIsVisible(true);
     // Update connection states when auth changes
@@ -87,6 +93,12 @@ export default function Profile() {
         trakt: traktAuth.isAuthenticated
       }
     }));
+
+    // Load cached AI summary on mount
+    const cachedSummary = getCachedSummary();
+    if (cachedSummary) {
+      setAiSummary(cachedSummary);
+    }
   }, [spotifyAuth.isAuthenticated, traktAuth.isAuthenticated]);
 
   // Save profile to localStorage whenever it changes
@@ -243,8 +255,72 @@ export default function Profile() {
     }, 500);
   };
 
-  const getProfileSummary = () => {
+  const getProfileSummary = async () => {
+    setSummaryLoading(true);
+    setSummaryError(null);
 
+    try {
+      // Gather all profile data
+      const summaryData: any = {
+        username: profile.username,
+        musicGenres: profile.musicGenres,
+        favoriteGames: profile.favoriteGames,
+        favoriteShows: profile.favoriteShows,
+      };
+
+      // Fetch Spotify data if connected
+      if (profile.connectedServices.spotify && spotifyAuth.isAuthenticated) {
+        try {
+          const [topArtists, topTracks] = await Promise.all([
+            getUserTopArtists(spotifyAuth.accessToken, 'short_term', 5),
+            getUserTopTracks(spotifyAuth.accessToken, 'short_term', 5)
+          ]);
+          summaryData.spotifyData = {
+            topArtists: topArtists.items?.map((a: any) => a.name) || [],
+            topTracks: topTracks.items?.map((t: any) => `${t.name} by ${t.artists[0].name}`) || []
+          };
+        } catch (error) {
+          console.error('Error fetching Spotify data:', error);
+        }
+      }
+
+      // Fetch Steam data if connected
+      if (profile.connectedServices.steam) {
+        try {
+          const steamId = localStorage.getItem('steam_id');
+          if (steamId) {
+            const gamesData = await getOwnedGames(steamId);
+            summaryData.steamData = {
+              games: gamesData.response?.games || []
+            };
+          }
+        } catch (error) {
+          console.error('Error fetching Steam data:', error);
+        }
+      }
+
+      // Fetch Trakt data if connected
+      if (profile.connectedServices.trakt && traktAuth.isAuthenticated) {
+        try {
+          const watchlist = await getUserWatchlist(traktAuth.accessToken);
+          summaryData.traktData = {
+            shows: watchlist.shows?.slice(0, 5).map((item: any) => item.show?.title).filter(Boolean) || [],
+            movies: watchlist.movies?.slice(0, 5).map((item: any) => item.movie?.title).filter(Boolean) || []
+          };
+        } catch (error) {
+          console.error('Error fetching Trakt data:', error);
+        }
+      }
+
+      // Generate AI summary
+      const summary = await generateProfileSummary(summaryData);
+      setAiSummary(summary);
+    } catch (error) {
+      console.error('Error generating profile summary:', error);
+      setSummaryError('Failed to generate summary. Please try again.');
+    } finally {
+      setSummaryLoading(false);
+    }
   };
 
   return (
@@ -320,10 +396,48 @@ export default function Profile() {
 
         {/* AI-generated Profile Summary */}
         <div className="mb-4">
-          <h2 className="text-lg font-semibold text-[hsl(var(--foreground))] mb-2">
-            AI-Generated Profile Summary - Powered by Gemini
-          </h2>
-          <p></p>
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="text-lg font-semibold text-[hsl(var(--foreground))] flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-[hsl(var(--primary))]" />
+              AI Profile Summary
+            </h2>
+            <button
+              onClick={getProfileSummary}
+              disabled={summaryLoading}
+              className="px-3 py-1.5 text-xs rounded-lg bg-[hsl(var(--primary))] text-white hover:bg-[hsl(260,80%,55%)] disabled:opacity-50 flex items-center gap-1.5 transition-colors"
+            >
+              {summaryLoading ? (
+                <>
+                  <RefreshCw className="w-3 h-3 animate-spin" />
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-3 h-3" />
+                  {aiSummary ? 'Regenerate' : 'Generate'}
+                </>
+              )}
+            </button>
+          </div>
+
+          <div className="bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-xl p-4">
+            {summaryError ? (
+              <p className="text-sm text-red-500">{summaryError}</p>
+            ) : aiSummary ? (
+              <div>
+                <p className="text-sm text-[hsl(var(--foreground))] leading-relaxed">
+                  {aiSummary}
+                </p>
+                <p className="text-xs text-[hsl(var(--muted-foreground))] mt-2 italic">
+                  Powered by Google Gemini AI
+                </p>
+              </div>
+            ) : (
+              <p className="text-sm text-[hsl(var(--muted-foreground))] italic">
+                Click "Generate" to create an AI-powered profile summary based on your interests and connected services.
+              </p>
+            )}
+          </div>
         </div>
 
         {/* Services Section */}

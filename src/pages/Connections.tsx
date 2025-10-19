@@ -5,6 +5,7 @@ import { extractSteamId } from "../utils/steamId";
 import { getPlayerSummary, getOwnedGames } from "../api/steam";
 import { getUserTopArtists, getUserTopTracks } from "../api/spotify";
 import { getUserWatchlist } from "../api/trakt";
+import { generateProfileSummary, getCachedSummary } from "../api/gemini";
 import MyceliumLogo from "@/components/MyceliumLogo";
 import { Music, Gamepad2, Plus, Tv, User, Camera } from "lucide-react";
 
@@ -236,11 +237,82 @@ export default function Connections() {
     });
   };
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
+    // Check if AI summary already exists
+    const existingSummary = getCachedSummary();
+
+    // If no summary exists, generate one in the background
+    if (!existingSummary) {
+      // Don't wait for this - let it run in background
+      generateSummaryInBackground();
+    }
+
     setIsVisible(false);
     setTimeout(() => {
       navigate("/dashboard");
     }, 500);
+  };
+
+  const generateSummaryInBackground = async () => {
+    try {
+      // Gather all profile data
+      const summaryData: any = {
+        username: profile.username,
+        musicGenres: profile.musicGenres,
+        favoriteGames: profile.favoriteGames,
+        favoriteShows: profile.favoriteShows,
+      };
+
+      // Fetch Spotify data if connected
+      if (profile.connectedServices.spotify && spotifyAuth.isAuthenticated) {
+        try {
+          const [topArtists, topTracks] = await Promise.all([
+            getUserTopArtists(spotifyAuth.accessToken, 'short_term', 5),
+            getUserTopTracks(spotifyAuth.accessToken, 'short_term', 5)
+          ]);
+          summaryData.spotifyData = {
+            topArtists: topArtists.items?.map((a: any) => a.name) || [],
+            topTracks: topTracks.items?.map((t: any) => `${t.name} by ${t.artists[0].name}`) || []
+          };
+        } catch (error) {
+          console.error('Error fetching Spotify data:', error);
+        }
+      }
+
+      // Fetch Steam data if connected
+      if (profile.connectedServices.steam) {
+        try {
+          const steamId = localStorage.getItem('steam_id');
+          if (steamId) {
+            const gamesData = await getOwnedGames(steamId);
+            summaryData.steamData = {
+              games: gamesData.response?.games || []
+            };
+          }
+        } catch (error) {
+          console.error('Error fetching Steam data:', error);
+        }
+      }
+
+      // Fetch Trakt data if connected
+      if (profile.connectedServices.trakt && traktAuth.isAuthenticated) {
+        try {
+          const watchlist = await getUserWatchlist(traktAuth.accessToken);
+          summaryData.traktData = {
+            shows: watchlist.shows?.slice(0, 5).map((item: any) => item.show?.title).filter(Boolean) || [],
+            movies: watchlist.movies?.slice(0, 5).map((item: any) => item.movie?.title).filter(Boolean) || []
+          };
+        } catch (error) {
+          console.error('Error fetching Trakt data:', error);
+        }
+      }
+
+      // Generate AI summary (saves to localStorage automatically)
+      await generateProfileSummary(summaryData);
+      console.log('AI profile summary generated successfully');
+    } catch (error) {
+      console.error('Error generating profile summary in background:', error);
+    }
   };
 
   return (
