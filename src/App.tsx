@@ -9,10 +9,8 @@ import OnboardingFlow from './pages/OnboardingFlow';
 import Auth from './pages/Auth';
 import Login from './pages/Login';
 import Connections from './pages/Connections';
+import Profile from './pages/Profile';
 import Index from './pages/Index';
-
-// Trakt routes
-import UserWatchlist from './pages/UserWatchlist';
 
 // Unified callback component
 import ApiCallback from './components/ApiCallback';
@@ -43,6 +41,8 @@ function App() {
               <Route path="/login" element={<Login />} />
               {/* Connections screen after auth */}
               <Route path="/connections" element={<Connections />} />
+              {/* Profile screen */}
+              <Route path="/profile" element={<Profile />} />
               {/* Dashboard (main app) */}
               <Route path="/dashboard" element={<Index />} />
               {/* /home also shows dashboard */}
@@ -50,11 +50,9 @@ function App() {
 
               {/* Trakt routes */}
               <Route path="/callback" element={<ApiCallback service="trakt" />} />
-              <Route path="/trakt/watchlist" element={<UserWatchlist />} />
 
               {/* Spotify routes */}
               <Route path="/spotify/callback" element={<ApiCallback service="spotify" />} />
-
             </Routes>
           </BrowserRouter>
         </ApiProvider>
