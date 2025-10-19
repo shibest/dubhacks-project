@@ -7,6 +7,7 @@ import { ApiProvider } from './contexts/ApiContext';
 // Client routes (priority)
 import OnboardingFlow from './pages/OnboardingFlow';
 import Auth from './pages/Auth';
+import Login from './pages/Login';
 import Connections from './pages/Connections';
 import Index from './pages/Index';
 
@@ -42,6 +43,8 @@ function App() {
               <Route path="/intro" element={<OnboardingFlow />} />
               {/* Auth screen after intro */}
               <Route path="/auth" element={<Auth />} />
+              {/* Login screen */}
+              <Route path="/login" element={<Login />} />
               {/* Connections screen after auth */}
               <Route path="/connections" element={<Connections />} />
               {/* Dashboard (main app) */}
