@@ -26,9 +26,53 @@ export interface Friend {
   created_at?: string
 }
 
-// localStorage fallback functions
-export const localStorageUsers: User[] = JSON.parse(localStorage.getItem('mycelius_users') || '[]')
-export const localStorageFriends: Friend[] = JSON.parse(localStorage.getItem('mycelius_friends') || '[]')
+// localStorage fallback functions - use getters to always get fresh data
+export const getLocalStorageUsers = (): User[] => {
+  return JSON.parse(localStorage.getItem('mycelius_users') || '[]')
+}
+
+export const getLocalStorageFriends = (): Friend[] => {
+  return JSON.parse(localStorage.getItem('mycelius_friends') || '[]')
+}
+
+// For backwards compatibility - but these now call the getters
+export const localStorageUsers = new Proxy({} as User[], {
+  get(_target, prop) {
+    const users = getLocalStorageUsers()
+    return users[prop as any]
+  },
+  has(_target, prop) {
+    const users = getLocalStorageUsers()
+    return prop in users
+  },
+  ownKeys() {
+    const users = getLocalStorageUsers()
+    return Reflect.ownKeys(users)
+  },
+  getOwnPropertyDescriptor(_target, prop) {
+    const users = getLocalStorageUsers()
+    return Object.getOwnPropertyDescriptor(users, prop)
+  }
+})
+
+export const localStorageFriends = new Proxy({} as Friend[], {
+  get(_target, prop) {
+    const friends = getLocalStorageFriends()
+    return friends[prop as any]
+  },
+  has(_target, prop) {
+    const friends = getLocalStorageFriends()
+    return prop in friends
+  },
+  ownKeys() {
+    const friends = getLocalStorageFriends()
+    return Reflect.ownKeys(friends)
+  },
+  getOwnPropertyDescriptor(_target, prop) {
+    const friends = getLocalStorageFriends()
+    return Object.getOwnPropertyDescriptor(friends, prop)
+  }
+})
 
 // Save to localStorage
 export const saveUsersToLocalStorage = (users: User[]) => {

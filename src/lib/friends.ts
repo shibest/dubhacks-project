@@ -1,4 +1,4 @@
-import { supabase, isSupabaseConfigured, User, Friend, localStorageUsers, localStorageFriends, saveUsersToLocalStorage, saveFriendsToLocalStorage, generateId } from './supabase'
+import { supabase, isSupabaseConfigured, User, Friend, getLocalStorageUsers, getLocalStorageFriends, saveUsersToLocalStorage, saveFriendsToLocalStorage, generateId } from './supabase'
 
 // Get current user ID from sessionStorage
 export const getCurrentUserId = (): string | null => {
@@ -13,7 +13,8 @@ export const getCurrentUserId = (): string | null => {
 
 // Initialize sample users if localStorage is empty
 const initializeSampleUsers = () => {
-  if (localStorageUsers.length === 0) {
+  const users = getLocalStorageUsers()
+  if (users.length === 0) {
     const sampleUsers: User[] = [
       {
         id: 'user-1',
@@ -49,7 +50,7 @@ const initializeSampleUsers = () => {
     saveUsersToLocalStorage(sampleUsers)
     return sampleUsers
   }
-  return localStorageUsers
+  return users
 }
 
 // Get all users (for discovery)
@@ -81,13 +82,13 @@ export const getUserById = async (userId: string): Promise<User | null> => {
 
     if (error) {
       console.error('Error fetching user:', error)
-      return localStorageUsers.find(u => u.id === userId) || null
+      return getLocalStorageUsers().find((u: User) => u.id === userId) || null
     }
 
     return data
   }
 
-  return localStorageUsers.find(u => u.id === userId) || null
+  return getLocalStorageUsers().find((u: User) => u.id === userId) || null
 }
 
 // Add friend
@@ -121,7 +122,7 @@ export const addFriend = async (currentUserId: string, friendUserId: string): Pr
     friend_id: friendUserId
   }
 
-  const updatedFriends = [...localStorageFriends, newFriend]
+  const updatedFriends = [...getLocalStorageFriends(), newFriend]
   saveFriendsToLocalStorage(updatedFriends)
   return true
 }
@@ -143,7 +144,7 @@ export const removeFriend = async (currentUserId: string, friendUserId: string):
   }
 
   // localStorage fallback
-  const updatedFriends = localStorageFriends.filter(f =>
+  const updatedFriends = getLocalStorageFriends().filter((f: Friend) =>
     !(f.user_id === currentUserId && f.friend_id === friendUserId) &&
     !(f.user_id === friendUserId && f.friend_id === currentUserId)
   )
@@ -169,22 +170,22 @@ export const getFriends = async (userId: string): Promise<User[]> => {
     if (error) {
       console.error('Error fetching friends:', error)
       // Fallback to localStorage
-      const friendIds = localStorageFriends
-        .filter(f => f.user_id === userId)
-        .map(f => f.friend_id)
+      const friendIds = getLocalStorageFriends()
+        .filter((f: Friend) => f.user_id === userId)
+        .map((f: Friend) => f.friend_id)
 
-      return localStorageUsers.filter(u => friendIds.includes(u.id))
+      return getLocalStorageUsers().filter((u: User) => friendIds.includes(u.id))
     }
 
     return (data?.map((item: any) => item.friend).filter(Boolean) as User[]) || []
   }
 
   // localStorage fallback
-  const friendIds = localStorageFriends
-    .filter(f => f.user_id === userId)
-    .map(f => f.friend_id)
+  const friendIds = getLocalStorageFriends()
+    .filter((f: Friend) => f.user_id === userId)
+    .map((f: Friend) => f.friend_id)
 
-  return localStorageUsers.filter(u => friendIds.includes(u.id))
+  return getLocalStorageUsers().filter((u: User) => friendIds.includes(u.id))
 }
 
 // Check if two users are friends
@@ -211,9 +212,10 @@ export const upsertUser = async (user: Partial<User>): Promise<User | null> => {
   }
 
   // localStorage fallback
-  let existingUserIndex = localStorageUsers.findIndex(u => u.id === user.id)
+  const users = getLocalStorageUsers()
+  let existingUserIndex = users.findIndex((u: User) => u.id === user.id)
   if (existingUserIndex >= 0) {
-    localStorageUsers[existingUserIndex] = { ...localStorageUsers[existingUserIndex], ...user }
+    users[existingUserIndex] = { ...users[existingUserIndex], ...user }
   } else {
     const newUser: User = {
       id: user.id || generateId(),
@@ -221,10 +223,10 @@ export const upsertUser = async (user: Partial<User>): Promise<User | null> => {
       email: user.email || '',
       interests: user.interests || []
     }
-    localStorageUsers.push(newUser)
-    existingUserIndex = localStorageUsers.length - 1
+    users.push(newUser)
+    existingUserIndex = users.length - 1
   }
 
-  saveUsersToLocalStorage(localStorageUsers)
-  return localStorageUsers[existingUserIndex]
+  saveUsersToLocalStorage(users)
+  return users[existingUserIndex]
 }
