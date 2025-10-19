@@ -1,7 +1,8 @@
 import { useEffect, useState, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation, useParams } from "react-router-dom";
 import { Send, Image, Smile, Paperclip, ArrowLeft, FileText } from "lucide-react";
 import { generateGamePrompt, generateGameResponse } from "@/api/gemini";
+import { getFriends, getCurrentUserId } from "@/lib/friends";
 
 interface Message {
   id: string;
@@ -13,50 +14,76 @@ interface Message {
 
 export default function Chat() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const params = useParams();
+  const friendId = params.friendId || location.state?.friendId;
 
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      text: 'The Game Master is typing...',
-      sender: 'other',
-      timestamp: new Date(),
-      type: 'text'
-    }
-  ]);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [friend, setFriend] = useState<any>(null);
+  const [isFriendChat, setIsFriendChat] = useState(false);
 
   const [response, setResponse] = useState('');
 
-  useEffect(() => {
-    // This code will run only once after the initial render
-    const getGamePrompt = async () => {
-      try {
-        const prompt = await generateGamePrompt('hot_takes');
+  const loadFriendData = async () => {
+    if (!friendId) return;
 
-        // Update the first message with the AI prompt
-        setMessages(prev => {
-          const updated = [...prev];
-          updated[0] = {
-            ...updated[0],
-            text: prompt
-          };
-          return updated;
-        });
-      } catch (error) {
-        console.error('Error generating game prompt:', error);
-
-        // Update with error message
-        setMessages(prev => {
-          const updated = [...prev];
-          updated[0] = {
-            ...updated[0],
-            text: 'Sorry, I had trouble loading the game. Please try again!'
-          };
-          return updated;
-        });
+    try {
+      const currentUserId = getCurrentUserId();
+      if (currentUserId) {
+        const friendsData = await getFriends(currentUserId);
+        const friendData = friendsData.find(f => f.id === friendId);
+        if (friendData) {
+          setFriend(friendData);
+          // Initialize with a welcome message
+          setMessages([{
+            id: '1',
+            text: `Hey! Let's chat!`,
+            sender: 'other',
+            timestamp: new Date(),
+            type: 'text'
+          }]);
+        }
       }
+    } catch (error) {
+      console.error('Error loading friend data:', error);
     }
-    getGamePrompt();
-  }, []);
+  };
+
+  useEffect(() => {
+    if (friendId) {
+      setIsFriendChat(true);
+      loadFriendData();
+    } else {
+      setIsFriendChat(false);
+      // Game mode initialization
+      const getGamePrompt = async () => {
+        try {
+          const prompt = await generateGamePrompt('hot_takes');
+
+          // Update the first message with the AI prompt
+          setMessages([{
+            id: '1',
+            text: prompt,
+            sender: 'other',
+            timestamp: new Date(),
+            type: 'text'
+          }]);
+        } catch (error) {
+          console.error('Error generating game prompt:', error);
+
+          // Update with error message
+          setMessages([{
+            id: '1',
+            text: 'Sorry, I had trouble loading the game. Please try again!',
+            sender: 'other',
+            timestamp: new Date(),
+            type: 'text'
+          }]);
+        }
+      }
+      getGamePrompt();
+    }
+  }, [friendId]);
   const [newMessage, setNewMessage] = useState('');
   const [sentMessages, setSentMessages] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
@@ -124,44 +151,69 @@ export default function Chat() {
         timestamp: new Date(),
         type: 'text'
       };
-      setSentMessages(prevMessages => prevMessages + 1);
       setMessages(prev => [...prev, message]);
-
-      // Store the current message text before clearing
-      const currentMessageText = newMessage;
       setNewMessage('');
 
-      if (sentMessages == 0) {
-        const responseMessage: Message = {
-          id: Date.now().toString(),
-          text: `Alright, the results are in! Here's what you said: "${currentMessageText}"\nJust type /continue and I'll reveal other user's hot take, and discuss!`,
-          sender: 'other',
-          timestamp: new Date(),
-          type: 'text'
-        };
-        setMessages(prev => [...prev, responseMessage]);
-        getGameResponse();
-      }
-      if (sentMessages == 1) {
-        const otherMessage: Message = {
-          id: Date.now().toString(),
-          text: response,
-          sender: 'other',
-          timestamp: new Date(),
-          type: 'text'
-        };
-        setMessages(prev => [...prev, otherMessage]);
-      }
-      // Simulate response after a delay
-      if (sentMessages > 1) {
-          setTimeout(() => {
+      if (!isFriendChat) {
+        // Game mode logic
+        setSentMessages(prevMessages => prevMessages + 1);
+
+        // Store the current message text before clearing
+        const currentMessageText = newMessage;
+
+        if (sentMessages == 0) {
+          const responseMessage: Message = {
+            id: Date.now().toString(),
+            text: `Alright, the results are in! Here's what you said: "${currentMessageText}"\nJust type /continue and I'll reveal other user's hot take, and discuss!`,
+            sender: 'other',
+            timestamp: new Date(),
+            type: 'text'
+          };
+          setMessages(prev => [...prev, responseMessage]);
+          getGameResponse();
+        }
+        if (sentMessages == 1) {
+          const otherMessage: Message = {
+            id: Date.now().toString(),
+            text: response,
+            sender: 'other',
+            timestamp: new Date(),
+            type: 'text'
+          };
+          setMessages(prev => [...prev, otherMessage]);
+        }
+        // Simulate response after a delay
+        if (sentMessages > 1) {
+            setTimeout(() => {
+            const responses = [
+              "That's a bold take! 🔥",
+              "I respectfully disagree 😅",
+              "Wait, explain your reasoning!",
+              "This is getting heated! 🌶️",
+              "New phone, who dis? 📱",
+              "That's actually kinda based 💀"
+            ];
+            const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+            const responseMessage: Message = {
+              id: (Date.now() + 1).toString(),
+              text: randomResponse,
+              sender: 'other',
+              timestamp: new Date(),
+              type: 'text'
+            };
+            setMessages(prev => [...prev, responseMessage]);
+          }, 1000 + Math.random() * 2000);
+        }
+      } else {
+        // Friend chat mode - simulate response
+        setTimeout(() => {
           const responses = [
-            "That's a bold take! 🔥",
-            "I respectfully disagree 😅",
-            "Wait, explain your reasoning!",
-            "This is getting heated! 🌶️",
-            "New phone, who dis? 📱",
-            "That's actually kinda based 💀"
+            "That sounds awesome! 😊",
+            "I totally agree!",
+            "Tell me more about that!",
+            "That's interesting!",
+            "Haha, that's funny!",
+            "I feel the same way!"
           ];
           const randomResponse = responses[Math.floor(Math.random() * responses.length)];
           const responseMessage: Message = {
@@ -174,7 +226,6 @@ export default function Chat() {
           setMessages(prev => [...prev, responseMessage]);
         }, 1000 + Math.random() * 2000);
       }
-      
     }
   };
 
@@ -186,19 +237,16 @@ export default function Chat() {
   };
 
   const handleEmojiClick = (emoji: string) => {
-    const message: Message = {
-      id: Date.now().toString(),
-      text: emoji,
-      sender: 'user',
-      timestamp: new Date(),
-      type: 'emoji'
-    };
-    setMessages(prev => [...prev, message]);
+    setNewMessage(prev => prev + emoji);
   };
 
   const handleBackToGames = () => {
-    saveCurrentConversation();
-    navigate("/games");
+    if (!isFriendChat) {
+      saveCurrentConversation();
+      navigate("/games");
+    } else {
+      navigate("/friends");
+    }
   };
 
   const handleViewLogs = () => {
@@ -214,7 +262,7 @@ export default function Chat() {
       isVisible ? "opacity-100" : "opacity-0"
     }`}>
       {/* Header */}
-      <div className="bg-gradient-to-r from-red-500 to-orange-500 text-white p-4 shadow-lg">
+      <div className={`text-white p-4 shadow-lg ${isFriendChat ? 'bg-gradient-to-r from-purple-500 to-pink-500' : 'bg-gradient-to-r from-red-500 to-orange-500'}`}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <button
@@ -225,27 +273,33 @@ export default function Chat() {
             </button>
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-                <span className="text-lg">🔥</span>
+                <span className="text-lg">{isFriendChat ? '👥' : '🔥'}</span>
               </div>
               <div>
-                <h1 className="font-bold text-lg">Hot Takes Debate</h1>
-                <p className="text-sm opacity-90">Share your controversial opinions!</p>
+                <h1 className="font-bold text-lg">
+                  {isFriendChat ? (friend ? `Chat with ${friend.username}` : 'Friend Chat') : 'Hot Takes Debate'}
+                </h1>
+                <p className="text-sm opacity-90">
+                  {isFriendChat ? 'Have a great conversation!' : 'Share your controversial opinions!'}
+                </p>
               </div>
             </div>
           </div>
 
-          <button
-            onClick={handleViewLogs}
-            className="p-2 hover:bg-white/20 rounded-full transition-colors"
-            title="View Chat Logs"
-          >
-            <FileText size={20} />
-          </button>
+          {!isFriendChat && (
+            <button
+              onClick={handleViewLogs}
+              className="p-2 hover:bg-white/20 rounded-full transition-colors"
+              title="View Chat Logs"
+            >
+              <FileText size={20} />
+            </button>
+          )}
         </div>
       </div>
 
       {/* Messages or Logs */}
-      {showLogs ? (
+      {!isFriendChat && showLogs ? (
         <div className="flex-1 overflow-y-auto p-4">
           <div className="mb-4">
             <button
@@ -325,7 +379,7 @@ export default function Chat() {
       <div className="bg-white border-t border-gray-200 p-4">
         {/* Quick Emojis */}
         <div className="flex gap-2 mb-3 overflow-x-auto pb-2">
-          {['🔥', '😅', '💀', '🌶️', '📱', '🤔', '😤', '🤡', '👀', '💯'].map((emoji) => (
+          {(isFriendChat ? ['😊', '😂', '❤️', '👍', '👋', '🤔', '😢', '🎉', '🙌', '💯'] : ['🔥', '😅', '💀', '🌶️', '📱', '🤔', '😤', '🤡', '👀', '💯']).map((emoji) => (
             <button
               key={emoji}
               onClick={() => handleEmojiClick(emoji)}
@@ -338,21 +392,47 @@ export default function Chat() {
 
         {/* Input Area */}
         <div className="flex items-end gap-2">
-          <button className="p-2 text-gray-500 hover:text-gray-700 transition-colors">
-            <Paperclip size={20} />
-          </button>
+         <input
+           type="file"
+           accept="*/*"
+           onChange={(e) => {
+             const file = e.target.files?.[0];
+             if (file) {
+               // Handle file upload - for now just show filename
+               setNewMessage(prev => prev + `[File: ${file.name}]`);
+             }
+           }}
+           className="hidden"
+           id="file-input"
+         />
+         <label htmlFor="file-input" className="p-2 text-gray-500 hover:text-gray-700 transition-colors cursor-pointer">
+           <Paperclip size={20} />
+         </label>
 
-          <button className="p-2 text-gray-500 hover:text-gray-700 transition-colors">
-            <Image size={20} />
-          </button>
+         <input
+           type="file"
+           accept="image/*"
+           onChange={(e) => {
+             const file = e.target.files?.[0];
+             if (file) {
+               // Handle image upload - for now just show filename
+               setNewMessage(prev => prev + `[Image: ${file.name}]`);
+             }
+           }}
+           className="hidden"
+           id="image-input"
+         />
+         <label htmlFor="image-input" className="p-2 text-gray-500 hover:text-gray-700 transition-colors cursor-pointer">
+           <Image size={20} />
+         </label>
 
           <div className="flex-1 relative">
             <textarea
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
               onKeyPress={handleKeyPress}
-              placeholder="Share your hot take..."
-              className="w-full px-4 py-3 pr-12 bg-gray-50 border border-gray-200 rounded-2xl resize-none focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+              placeholder={isFriendChat ? "Type a message..." : "Share your hot take..."}
+              className="w-full px-4 py-3 pr-12 bg-gray-50 border border-gray-200 rounded-2xl resize-none focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-black"
               rows={1}
               style={{ minHeight: '44px', maxHeight: '120px' }}
             />

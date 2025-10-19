@@ -53,6 +53,7 @@ export default function Friends() {
   const [isVisible, setIsVisible] = useState(false);
   const [friends, setFriends] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedCommunity, setSelectedCommunity] = useState("All Communities");
 
   useEffect(() => {
     setIsVisible(true);
@@ -65,14 +66,20 @@ export default function Friends() {
       try {
         const friendsData = await getFriends(currentUserId);
         // Convert User[] to Profile[] format
-        const profiles: Profile[] = friendsData.map(user => ({
-          id: user.id,
-          name: user.username, // Using username as name for now
-          username: user.username,
-          avatar: user.username.substring(0, 2).toUpperCase(),
-          bio: `Interests: ${user.interests.join(', ')}`,
-          mutualFriends: 0 // Could be calculated later
-        }));
+        const profiles: Profile[] = friendsData
+          .filter(user => {
+            if (selectedCommunity === "All Communities") return true;
+            // Filter by community - users are now assigned communities randomly
+            return (user as any).community === selectedCommunity;
+          })
+          .map(user => ({
+            id: user.id,
+            name: user.username, // Using username as name for now
+            username: user.username,
+            avatar: user.username.substring(0, 2).toUpperCase(),
+            bio: `Interests: ${user.interests.join(', ')}`,
+            mutualFriends: 0 // Could be calculated later
+          }));
         setFriends(profiles);
       } catch (error) {
         console.error('Error loading friends:', error);
@@ -81,9 +88,10 @@ export default function Friends() {
     setLoading(false);
   };
 
-  const handleCommunityClick = () => {
-    // Community button action
-    console.log("Community clicked");
+  const handleCommunityChange = (community: string) => {
+    setSelectedCommunity(community);
+    // Reload friends with new community filter
+    loadFriends();
   };
 
   const handleProfileClick = () => {
@@ -105,8 +113,7 @@ export default function Friends() {
   };
 
   const handleChat = (friendId: string) => {
-    console.log("Chat with friend:", friendId);
-    // TODO: Implement chat functionality
+    navigate(`/chat/${friendId}`);
   };
 
   const handleRemoveFriend = async (friendId: string) => {
@@ -129,7 +136,8 @@ export default function Friends() {
       style={{ paddingTop: 0 }}
     >
       <Header
-        onCommunityClick={handleCommunityClick}
+        selectedCommunity={selectedCommunity}
+        onCommunityChange={handleCommunityChange}
         onProfileClick={handleProfileClick}
       />
 

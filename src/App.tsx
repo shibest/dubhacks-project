@@ -82,6 +82,7 @@ function App() {
               <Route path="/gameanim" element={<GameAnim />} />
               {/* Chat screen */}
               <Route path="/chat" element={<Chat />} />
+              <Route path="/chat/:friendId" element={<Chat />} />
               {/* Hot Takes Game */}
               <Route path="/games/hottakes/anim" element={<HotTakesAnim />} />
               <Route path="/games/hottakes/chat" element={<HotTakesChat />} />

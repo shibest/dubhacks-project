@@ -15,6 +15,9 @@ export const getCurrentUserId = (): string | null => {
 const initializeSampleUsers = () => {
   const users = getLocalStorageUsers()
   if (users.length === 0) {
+    // Define communities
+    const communities = ["UW", "Microsoft", "Seattle"];
+
     const sampleUsers: User[] = [
       {
         id: 'user-1',
@@ -192,8 +195,14 @@ const initializeSampleUsers = () => {
         personality: 'Adaptable free spirit who thrives on change. Practical dreamer making location-independent life work.'
       }
     ]
-    saveUsersToLocalStorage(sampleUsers)
-    return sampleUsers
+    // Assign communities randomly to users
+    const usersWithCommunities = sampleUsers.map(user => ({
+      ...user,
+      community: communities[Math.floor(Math.random() * communities.length)]
+    }));
+
+    saveUsersToLocalStorage(usersWithCommunities)
+    return usersWithCommunities
   }
   return users
 }

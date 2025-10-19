@@ -13,6 +13,7 @@ export default function Index() {
   const [allUsers, setAllUsers] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCommunity, setSelectedCommunity] = useState("All Communities");
 
   // Force re-render when friends are added/removed to update UI immediately
   const [refreshTrigger, setRefreshTrigger] = useState(0);
@@ -37,6 +38,11 @@ export default function Index() {
       // Convert User[] to Profile[] and exclude current user and existing friends
       const profiles: Profile[] = users
         .filter(user => user.id !== currentUserId && !friendIds.has(user.id))
+        .filter(user => {
+          if (selectedCommunity === "All Communities") return true;
+          // Filter by community - users are now assigned communities randomly
+          return (user as any).community === selectedCommunity;
+        })
         .map(user => ({
           id: user.id,
           name: user.username,
@@ -60,9 +66,10 @@ export default function Index() {
     triggerUpdate();
   };
 
-  const handleCommunityClick = () => {
-    // Community button action
-    console.log("Community clicked");
+  const handleCommunityChange = (community: string) => {
+    setSelectedCommunity(community);
+    // Reload users with new community filter
+    loadUsers();
   };
 
   const handleProfileClick = () => {
@@ -91,7 +98,8 @@ export default function Index() {
       style={{ paddingTop: 0 }}
     >
       <Header
-        onCommunityClick={handleCommunityClick}
+        selectedCommunity={selectedCommunity}
+        onCommunityChange={handleCommunityChange}
         onProfileClick={handleProfileClick}
       />
 
