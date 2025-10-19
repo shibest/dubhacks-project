@@ -1,17 +1,15 @@
 {
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
-  "redirects": [
+  "headers": [
     {
-      "source": "/:path*",
-      "has": [
+      "source": "/(.*)",
+      "headers": [
         {
-          "type": "host",
-          "value": "www.myceli.us"
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
         }
-      ],
-      "destination": "https://myceli.us/:path*",
-      "permanent": true
+      ]
     }
   ],
   "rewrites": [
