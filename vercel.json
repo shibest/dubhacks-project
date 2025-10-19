@@ -1,26 +1,23 @@
 {
-  "version": 2,
-  "builds": [
-    {
-      "src": "server/index.js",
-      "use": "@vercel/node"
-    },
-    {
-      "src": "package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "src"
-      }
-    }
-  ],
+  "buildCommand": "npm run start",
+  "outputDirectory": "dist",
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "/server/index.js"
+      "destination": "/backend/server.ts"
     },
     {
       "source": "/(.*)",
-      "destination": "src/$1"
+      "destination": "/index.html"
     }
-  ]
+  ],
+  "functions": {
+    "backend/server.ts": {
+      "runtime": "nodejs20.x"
+    }
+  },
+  "env": {
+    "VITE_APP_URL": "https://myceli.us",
+    "VITE_BACKEND_URL": "https://myceli.us/api"
+  }
 }
