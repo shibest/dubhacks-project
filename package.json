@@ -6,12 +6,14 @@
   "scripts": {
     "dev": "vite",
     "backend": "tsx backend/server.ts",
-    "start": "concurrently \"npm run dev\" \"npm run backend\" --names \"frontend,backend\" --prefix-colors \"cyan,magenta\"",
+    "startdev": "concurrently \"npm run dev\" \"npm run backend\" --names \"frontend,backend\" --prefix-colors \"cyan,magenta\"",
+    "start": "concurrently \"npm run build\" \"npm run backend\" --names \"frontend,backend\" --prefix-colors \"cyan,magenta\"",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"
   },
   "dependencies": {
+    "@google/genai": "^1.25.0",
     "@hookform/resolvers": "^5.2.2",
     "@radix-ui/react-accordion": "^1.2.12",
     "@radix-ui/react-alert-dialog": "^1.1.15",
@@ -41,6 +43,7 @@
     "@radix-ui/react-toggle-group": "^1.1.11",
     "@radix-ui/react-tooltip": "^1.2.8",
     "@tanstack/react-query": "^5.90.5",
+    "@vercel/node": "^5.4.0",
     "axios": "^1.12.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

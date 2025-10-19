@@ -132,7 +132,7 @@ export const ApiProvider = ({ children }: ApiProviderProps) => {
   // Generic callback handler
   const createCallbackHandler = (service: ServiceType) => async (code: string): Promise<boolean> => {
     const config = services[service];
-    const endpoint = service === 'spotify' ? '/api/spotify/auth/token' : '/api/auth/token';
+    const endpoint = service === 'spotify' ? '/api/spotify/auth/token' : '/api/trakt/auth/token';
 
     try {
       const response = await fetch(`${config.backendUrl}${endpoint}`, {
@@ -188,7 +188,7 @@ export const ApiProvider = ({ children }: ApiProviderProps) => {
   const createRefreshHandler = (service: ServiceType) => async (): Promise<boolean> => {
     const config = services[service];
     const refreshToken = service === 'spotify' ? spotifyRefreshToken : traktRefreshToken;
-    const endpoint = service === 'spotify' ? '/api/spotify/auth/refresh' : '/api/auth/refresh';
+    const endpoint = service === 'spotify' ? '/api/spotify/auth/refresh' : '/api/trakt/auth/refresh';
 
     if (!refreshToken) {
       console.error(`No ${service} refresh token available`);

@@ -18,7 +18,7 @@ function ApiCallback({ service, successRoute, failureRoute = '/' }: ApiCallbackP
   const auth = service === 'spotify' ? spotifyAuth : traktAuth;
 
   // Default success routes based on service
-  const defaultSuccessRoute = service === 'spotify' ? '/spotify/profile' : '/dashboard';
+  const defaultSuccessRoute = service === 'spotify' ? '/profile' : '/profile';
   const finalSuccessRoute = successRoute || defaultSuccessRoute;
 
   useEffect(() => {
