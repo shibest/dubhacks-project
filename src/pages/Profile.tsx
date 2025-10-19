@@ -5,7 +5,7 @@ import { extractSteamId } from "../utils/steamId";
 import { getPlayerSummary, getOwnedGames } from "../api/steam";
 import { getUserTopArtists, getUserTopTracks } from "../api/spotify";
 import { getUserWatchlist } from "../api/trakt";
-import { generateProfileSummary, getCachedSummary } from "../api/gemini";
+import { generateProfileSummary, getCachedSummary, clearSimilarityCache } from "../api/gemini";
 import MyceliumLogo from "@/components/MyceliumLogo";
 import { Music, Gamepad2, Plus, Tv, User, Camera, Sparkles, RefreshCw } from "lucide-react";
 
@@ -106,6 +106,8 @@ export default function Profile() {
   // Save profile to localStorage whenever it changes
   useEffect(() => {
     localStorage.setItem('user_profile', JSON.stringify(profile));
+    // Clear similarity cache when profile changes so new scores are calculated
+    clearSimilarityCache();
   }, [profile]);
 
   // Profile picture upload

@@ -185,7 +185,7 @@ export async function callGemini(prompt: string): Promise<string> {
   }
 }
 
-// Calculate similarity between user profile and a candidate profile
+// Calculate similarity between user profile and a candidate profile (DEPRECATED - use batch version)
 export async function calculateProfileSimilarity(
   userProfile: {
     hobbies: string;
@@ -236,6 +236,172 @@ Return ONLY the number (0-100), nothing else.`;
   } catch (error) {
     console.error('Error calculating profile similarity:', error);
     return 50; // Return neutral score on error
+  }
+}
+
+// OPTIMIZED: Batch calculate similarity scores for multiple candidates in a single API call
+export async function calculateBatchProfileSimilarity(
+  userProfile: {
+    hobbies: string;
+    musicGenres: string[];
+    favoriteGames: string[];
+    favoriteShows: string[];
+  },
+  candidateProfiles: Array<{
+    username: string;
+    personality: string;
+    interests: string[];
+  }>
+): Promise<Map<string, number>> {
+  // Check cache first
+  const cacheKey = generateSimilarityCacheKey(userProfile);
+  const cached = getCachedSimilarityScores(cacheKey);
+
+  if (cached) {
+    console.log('Using cached similarity scores');
+    return cached;
+  }
+
+  try {
+    // Build a single prompt for all candidates
+    const candidatesList = candidateProfiles.map((candidate, index) =>
+      `${index + 1}. ${candidate.username}:
+   - Personality: ${candidate.personality}
+   - Interests: ${candidate.interests.join(', ')}`
+    ).join('\n\n');
+
+    const prompt = `You are a profile matching algorithm. Compare the user's profile with ALL ${candidateProfiles.length} candidate profiles below and return similarity scores for each.
+
+User Profile:
+- Hobbies: ${userProfile.hobbies || 'Not specified'}
+- Music Genres: ${userProfile.musicGenres.join(', ') || 'None'}
+- Favorite Games: ${userProfile.favoriteGames.join(', ') || 'None'}
+- Favorite Shows: ${userProfile.favoriteShows.join(', ') || 'None'}
+
+Candidate Profiles:
+${candidatesList}
+
+For EACH candidate, calculate a similarity score from 0-100 (where 100 is extremely similar, 0 is completely different).
+
+Consider:
+- Overlap in interests, hobbies, entertainment preferences
+- Personality compatibility with user's interests
+- Potential for meaningful connection
+
+Return ONLY the scores in this exact format (one per line):
+1. 85
+2. 72
+3. 91
+(etc...)`;
+
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash-lite",
+      contents: prompt,
+    });
+
+    const responseText = response.text?.trim() || '';
+    const scores = new Map<string, number>();
+
+    // Parse the response
+    const lines = responseText.split('\n').filter(line => line.trim());
+
+    candidateProfiles.forEach((candidate, index) => {
+      const line = lines[index];
+      if (line) {
+        // Extract number from formats like "1. 85" or "85" or "1) 85"
+        const match = line.match(/(\d+)[.)]\s*(\d+)|(\d+)/);
+        if (match) {
+          const score = parseInt(match[2] || match[3] || match[1]);
+          if (!isNaN(score) && score >= 0 && score <= 100) {
+            scores.set(candidate.username, score);
+          } else {
+            scores.set(candidate.username, 50); // Default if invalid
+          }
+        } else {
+          scores.set(candidate.username, 50); // Default if parsing fails
+        }
+      } else {
+        scores.set(candidate.username, 50); // Default if no line found
+      }
+    });
+
+    // Cache the results
+    cacheSimilarityScores(cacheKey, scores);
+
+    console.log(`Calculated ${scores.size} similarity scores in a single API call`);
+    return scores;
+  } catch (error) {
+    console.error('Error calculating batch profile similarity:', error);
+    // Return default scores for all candidates
+    const defaultScores = new Map<string, number>();
+    candidateProfiles.forEach(candidate => {
+      defaultScores.set(candidate.username, 50);
+    });
+    return defaultScores;
+  }
+}
+
+// Generate a cache key based on user profile
+function generateSimilarityCacheKey(userProfile: {
+  hobbies: string;
+  musicGenres: string[];
+  favoriteGames: string[];
+  favoriteShows: string[];
+}): string {
+  const profileData = JSON.stringify({
+    hobbies: userProfile.hobbies || '',
+    musicGenres: (userProfile.musicGenres || []).sort(),
+    favoriteGames: (userProfile.favoriteGames || []).sort(),
+    favoriteShows: (userProfile.favoriteShows || []).sort()
+  });
+  return `similarity_cache_${btoa(profileData).substring(0, 50)}`;
+}
+
+// Get cached similarity scores
+function getCachedSimilarityScores(cacheKey: string): Map<string, number> | null {
+  try {
+    const cached = localStorage.getItem(cacheKey);
+    if (!cached) return null;
+
+    const data = JSON.parse(cached);
+    // Check if cache is less than 1 hour old
+    if (Date.now() - data.timestamp > 60 * 60 * 1000) {
+      localStorage.removeItem(cacheKey);
+      return null;
+    }
+
+    return new Map(Object.entries(data.scores));
+  } catch (error) {
+    console.error('Error reading cache:', error);
+    return null;
+  }
+}
+
+// Cache similarity scores
+function cacheSimilarityScores(cacheKey: string, scores: Map<string, number>): void {
+  try {
+    const data = {
+      timestamp: Date.now(),
+      scores: Object.fromEntries(scores)
+    };
+    localStorage.setItem(cacheKey, JSON.stringify(data));
+  } catch (error) {
+    console.error('Error caching scores:', error);
+  }
+}
+
+// Clear similarity cache (call this when user updates their profile)
+export function clearSimilarityCache(): void {
+  try {
+    const keys = Object.keys(localStorage);
+    keys.forEach(key => {
+      if (key.startsWith('similarity_cache_')) {
+        localStorage.removeItem(key);
+      }
+    });
+    console.log('Similarity cache cleared');
+  } catch (error) {
+    console.error('Error clearing similarity cache:', error);
   }
 }
 

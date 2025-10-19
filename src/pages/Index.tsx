@@ -6,7 +6,7 @@ import BottomTaskbar from "@/components/BottomTaskbar";
 import { getAllUsers, getCurrentUserId, getFriends } from "@/lib/friends";
 import ProfileCard, { Profile } from "@/components/ProfileCard";
 import { updateFriendsCount } from "@/lib/leaderboard";
-import { calculateProfileSimilarity } from "@/api/gemini";
+import { calculateBatchProfileSimilarity } from "@/api/gemini";
 import { User } from "@/lib/supabase";
 import { UserPlus } from "lucide-react";
 
@@ -69,37 +69,36 @@ export default function Index() {
       // Filter users and calculate similarity scores
       const filteredUsers = users.filter(user => user.id !== currentUserId && !friendIds.has(user.id));
 
-      // Calculate similarity scores for each user
-      const usersWithScores = await Promise.all(
-        filteredUsers.map(async (user) => {
-          let similarityScore = 50; // Default neutral score
+      // OPTIMIZED: Calculate ALL similarity scores in a single API call
+      let similarityScores = new Map<string, number>();
 
-          if (userProfile && user.personality) {
-            try {
-              similarityScore = await calculateProfileSimilarity(
-                {
-                  hobbies: userProfile.hobbies || '',
-                  musicGenres: userProfile.musicGenres || [],
-                  favoriteGames: userProfile.favoriteGames || [],
-                  favoriteShows: userProfile.favoriteShows || []
-                },
-                {
-                  username: user.username,
-                  personality: user.personality,
-                  interests: user.interests
-                }
-              );
-            } catch (error) {
-              console.error(`Error calculating similarity for ${user.username}:`, error);
-            }
-          }
+      if (userProfile && filteredUsers.some(user => user.personality)) {
+        try {
+          const candidatesWithPersonality = filteredUsers.filter(user => user.personality);
 
-          return {
-            user,
-            similarityScore
-          };
-        })
-      );
+          similarityScores = await calculateBatchProfileSimilarity(
+            {
+              hobbies: userProfile.hobbies || '',
+              musicGenres: userProfile.musicGenres || [],
+              favoriteGames: userProfile.favoriteGames || [],
+              favoriteShows: userProfile.favoriteShows || []
+            },
+            candidatesWithPersonality.map(user => ({
+              username: user.username,
+              personality: user.personality!,
+              interests: user.interests
+            }))
+          );
+        } catch (error) {
+          console.error('Error calculating batch similarity:', error);
+        }
+      }
+
+      // Map users with their scores
+      const usersWithScores = filteredUsers.map(user => ({
+        user,
+        similarityScore: similarityScores.get(user.username) || 50
+      }));
 
       // Sort by similarity score (highest first)
       usersWithScores.sort((a, b) => b.similarityScore - a.similarityScore);
