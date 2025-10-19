@@ -1,6 +1,19 @@
 {
-  "buildCommand": "npm run start",
+  "buildCommand": "npm run build",
   "outputDirectory": "dist",
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.myceli.us"
+        }
+      ],
+      "destination": "https://myceli.us/:path*",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     {
       "source": "/api/:path*",

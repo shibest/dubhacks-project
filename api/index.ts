@@ -5,7 +5,18 @@ import cors from 'cors';
 
 const app = express();
 
-app.use(cors());
+// CORS configuration for myceli.us (both www and non-www)
+app.use(cors({
+  origin: [
+    'https://myceli.us',
+    'https://www.myceli.us',
+    'http://localhost:5173'
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
 app.use(express.json());
 
 const APP_URL = process.env.VITE_APP_URL || 'https://myceli.us';
@@ -14,7 +25,7 @@ const APP_URL = process.env.VITE_APP_URL || 'https://myceli.us';
 const TRAKT_CLIENT_ID = process.env.TRAKT_CLIENT_ID;
 const TRAKT_CLIENT_SECRET = process.env.TRAKT_CLIENT_SECRET;
 
-app.post('/trakt/token', async (req, res) => {
+app.post('/trakt/auth/token', async (req, res) => {
   try {
     const { code } = req.body;
     const response = await axios.post('https://api.trakt.tv/oauth/token', {
@@ -28,6 +39,23 @@ app.post('/trakt/token', async (req, res) => {
   } catch (error: any) {
     console.error('Trakt token error:', error.response?.data || error.message);
     res.status(error.response?.status || 500).json({ error: 'Failed to get access token' });
+  }
+});
+
+app.post('/trakt/auth/refresh', async (req, res) => {
+  try {
+    const { refresh_token } = req.body;
+    const response = await axios.post('https://api.trakt.tv/oauth/token', {
+      refresh_token,
+      client_id: TRAKT_CLIENT_ID,
+      client_secret: TRAKT_CLIENT_SECRET,
+      redirect_uri: `${APP_URL}/callback`,
+      grant_type: 'refresh_token',
+    });
+    res.json(response.data);
+  } catch (error: any) {
+    console.error('Trakt refresh error:', error.response?.data || error.message);
+    res.status(error.response?.status || 500).json({ error: 'Failed to refresh token' });
   }
 });
 
@@ -55,7 +83,7 @@ app.use('/trakt', async (req, res) => {
 const SPOTIFY_CLIENT_ID = process.env.SPOTIFY_CLIENT_ID;
 const SPOTIFY_CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET;
 
-app.post('/spotify/token', async (req, res) => {
+app.post('/spotify/auth/token', async (req, res) => {
   try {
     const { code } = req.body;
     const authString = Buffer.from(`${SPOTIFY_CLIENT_ID}:${SPOTIFY_CLIENT_SECRET}`).toString('base64');
@@ -81,7 +109,7 @@ app.post('/spotify/token', async (req, res) => {
   }
 });
 
-app.post('/spotify/refresh', async (req, res) => {
+app.post('/spotify/auth/refresh', async (req, res) => {
   try {
     const { refresh_token } = req.body;
     const authString = Buffer.from(`${SPOTIFY_CLIENT_ID}:${SPOTIFY_CLIENT_SECRET}`).toString('base64');
@@ -176,6 +204,23 @@ app.get('/health', (req, res) => {
 
 // Export for Vercel serverless
 export default async (req: VercelRequest, res: VercelResponse) => {
+  // Add CORS headers to the response
+  const origin = req.headers.origin;
+  const allowedOrigins = ['https://myceli.us', 'https://www.myceli.us', 'http://localhost:5173'];
+
+  if (origin && allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+  // Handle preflight
+  if (req.method === 'OPTIONS') {
+    res.status(200).end();
+    return;
+  }
+
   return new Promise((resolve, reject) => {
     app(req as any, res as any, (err: any) => {
       if (err) reject(err);
