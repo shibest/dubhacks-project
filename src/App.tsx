@@ -15,6 +15,10 @@ import Friends from './pages/Friends';
 import Games from './pages/Games';
 import GameAnim from './pages/GameAnim';
 import Chat from './pages/Chat';
+import HotTakesAnim from './pages/games/HotTakesAnim';
+import HotTakesChat from './pages/games/HotTakesChat';
+import EmojiStoryAnim from './pages/games/EmojiStoryAnim';
+import EmojiStoryChat from './pages/games/EmojiStoryChat';
 
 // Unified callback component
 import ApiCallback from './components/ApiCallback';
@@ -59,6 +63,12 @@ function App() {
               <Route path="/gameanim" element={<GameAnim />} />
               {/* Chat screen */}
               <Route path="/chat" element={<Chat />} />
+              {/* Hot Takes Game */}
+              <Route path="/games/hottakes/anim" element={<HotTakesAnim />} />
+              <Route path="/games/hottakes/chat" element={<HotTakesChat />} />
+              {/* Emoji Story Game */}
+              <Route path="/games/emojistory/anim" element={<EmojiStoryAnim />} />
+              <Route path="/games/emojistory/chat" element={<EmojiStoryChat />} />
 
               {/* Trakt routes */}
               <Route path="/callback" element={<ApiCallback service="trakt" />} />
