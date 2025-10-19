@@ -1,5 +1,6 @@
 import { User } from "lucide-react";
 import MyceliumLogo from "./MyceliumLogo";
+import { useState, useEffect } from "react";
 
 interface HeaderProps {
   onCommunityClick?: () => void;
@@ -10,6 +11,41 @@ export default function Header({
   onCommunityClick,
   onProfileClick,
 }: HeaderProps) {
+  const [profilePicture, setProfilePicture] = useState<string>("");
+
+  useEffect(() => {
+    // Load profile picture from localStorage
+    const loadProfilePicture = () => {
+      const saved = localStorage.getItem('user_profile');
+      if (saved) {
+        const profile = JSON.parse(saved);
+        setProfilePicture(profile.profilePicture || "");
+      }
+    };
+
+    loadProfilePicture();
+
+    // Listen for storage changes (when profile is updated)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'user_profile') {
+        loadProfilePicture();
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+
+    // Also listen for custom event when profile is updated in the same tab
+    const handleProfileUpdate = () => {
+      loadProfilePicture();
+    };
+    window.addEventListener('profileUpdated', handleProfileUpdate);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('profileUpdated', handleProfileUpdate);
+    };
+  }, []);
+
   return (
     <header className="sticky top-0 z-40 bg-[hsl(var(--card))] border-b border-[hsl(var(--border))] shadow-lg">
       <div className="flex items-center justify-center px-4 py-3 h-16 md:px-8 md:py-4 md:h-20 relative">
@@ -34,10 +70,24 @@ export default function Header({
         {/* Profile Button - Right */}
         <button
           onClick={onProfileClick}
-          className="absolute right-4 md:right-8 w-9 h-9 md:w-11 md:h-11 rounded-full bg-gradient-to-r from-[hsl(280,95%,52%)] to-[hsl(180,85%,48%)] hover:from-[hsl(280,95%,47%)] hover:to-[hsl(180,85%,43%)] flex items-center justify-center text-white transition-all duration-200 shadow-md hover:shadow-lg"
+          className={`absolute right-4 md:right-8 w-9 h-9 md:w-11 md:h-11 rounded-full flex items-center justify-center text-white transition-all duration-200 shadow-md hover:shadow-lg overflow-hidden ${
+            profilePicture
+              ? 'bg-gray-200 dark:bg-gray-700 p-0'
+              : 'bg-gradient-to-r from-[hsl(280,95%,52%)] to-[hsl(180,85%,48%)] hover:from-[hsl(280,95%,47%)] hover:to-[hsl(180,85%,43%)]'
+          }`}
         >
-          <User size={20} className="md:hidden" />
-          <User size={22} className="hidden md:block" />
+          {profilePicture ? (
+            <img
+              src={profilePicture}
+              alt="Profile"
+              className="w-full h-full object-cover rounded-full"
+            />
+          ) : (
+            <>
+              <User size={20} className="md:hidden" />
+              <User size={22} className="hidden md:block" />
+            </>
+          )}
         </button>
       </div>
     </header>
