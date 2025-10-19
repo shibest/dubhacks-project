@@ -68,7 +68,14 @@ export default function ProfileCard({
   };
 
   return (
-    <div className="bg-[hsl(var(--card))] rounded-2xl md:rounded-3xl p-4 md:p-6 border border-[hsl(var(--border))] hover:border-[hsl(var(--primary))] transition-all duration-300 hover:shadow-xl shadow-md">
+    <div className="bg-[hsl(var(--card))] rounded-2xl md:rounded-3xl p-4 md:p-6 border border-[hsl(var(--border))] hover:border-[hsl(var(--primary))] transition-all duration-300 hover:shadow-xl shadow-md relative">
+      {/* Similarity Score Badge */}
+      {profile.similarityScore !== undefined && (
+        <div className="absolute top-3 right-3 md:top-4 md:right-4 px-2.5 py-1 md:px-3 md:py-1.5 rounded-full bg-gradient-to-r from-[hsl(280,95%,52%)] to-[hsl(180,85%,48%)] text-white text-xs md:text-sm font-bold shadow-md">
+          {profile.similarityScore}% Match
+        </div>
+      )}
+
       {/* Avatar and Content Container */}
       <div className="flex gap-3 md:gap-5 mb-4 md:mb-5">
         {/* Avatar - Left */}

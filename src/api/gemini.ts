@@ -71,7 +71,7 @@ export async function generateProfileSummary(profileData: ProfileSummaryData): P
     prompt += `\nCreate a concise, friendly profile summary that captures this person's interests and personality. Be casual and engaging. Keep it to 2-3 sentences maximum.`;
 
     const response = await ai.models.generateContent({
-      model: "gemini-2.0-flash-lite",
+      model: "gemini-2.5-flash-lite",
       contents: prompt,
     });
 
@@ -111,7 +111,7 @@ export async function generateGamePrompt(game: string): Promise<string> {
                 `will be revealed after both of them have submitted. This response should be no longer than 4 sentences ` +
                 `and not include special effects, only text that is speech.`;
       const response = await ai.models.generateContent({
-        model: "gemini-2.0-flash-lite",
+        model: "gemini-2.5-flash-lite",
         contents: prompt,
       });
 
@@ -148,7 +148,7 @@ export async function generateGameResponse(gamePrompt: string, personality: stri
     let prompt = `Given the following prompt, write a hot take that is about one sentence long that connects to the topic ` +
                   ` in the prompt that reads like someone with a ` + personality + ` personality: ` + gamePrompt;
     const response = await ai.models.generateContent({
-      model: "gemini-2.0-flash-lite",
+      model: "gemini-2.5-flash-lite",
       contents: prompt,
     });
 
@@ -168,7 +168,7 @@ export async function generateGameResponse(gamePrompt: string, personality: stri
 export async function callGemini(prompt: string): Promise<string> {
   try {
     const gemini = await ai.models.generateContent({
-      model: "gemini-2.0-flash-lite",
+      model: "gemini-2.5-flash-lite",
       contents: prompt,
     });
 
@@ -220,7 +220,7 @@ Consider:
 Return ONLY the number (0-100), nothing else.`;
 
     const response = await ai.models.generateContent({
-      model: "gemini-2.0-flash-lite",
+      model: "gemini-2.5-flash-lite",
       contents: prompt,
     });
 
@@ -257,7 +257,7 @@ Make it authentic to their personality and interests. Be opinionated and engagin
 Do not use asterisks or any special formatting, just write the hot take as natural speech.`;
 
     const response = await ai.models.generateContent({
-      model: "gemini-2.0-flash-lite",
+      model: "gemini-2.5-flash-lite",
       contents: prompt,
     });
 
@@ -302,7 +302,7 @@ Keep your response conversational (1-3 sentences). Be engaging and show personal
 Do not use asterisks or any special formatting, just write as natural speech.`;
 
     const response = await ai.models.generateContent({
-      model: "gemini-2.0-flash-lite",
+      model: "gemini-2.5-flash-lite",
       contents: prompt,
     });
 
