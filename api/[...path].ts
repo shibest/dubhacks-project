@@ -221,12 +221,21 @@ export default async (req: VercelRequest, res: VercelResponse) => {
     return;
   }
 
+  // Debug: Log the incoming request
+  console.log('Incoming request:', {
+    method: req.method,
+    url: req.url,
+    path: (req as any).path
+  });
+
   // Strip /api prefix from the URL before passing to Express
   // Vercel sends: /api/spotify/auth/token
   // Express expects: /spotify/auth/token
   if (req.url && req.url.startsWith('/api')) {
     req.url = req.url.replace('/api', '') || '/';
   }
+
+  console.log('After stripping:', req.url);
 
   return new Promise((resolve, reject) => {
     app(req as any, res as any, (err: any) => {
