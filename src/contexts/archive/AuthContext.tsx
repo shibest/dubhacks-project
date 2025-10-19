@@ -39,8 +39,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   // For Vite, use import.meta.env instead of process.env
   const TRAKT_CLIENT_ID = import.meta.env.VITE_TRAKT_CLIENT_ID;
-  const REDIRECT_URI = 'http://localhost:5173/callback';
-  const BACKEND_URL = 'http://localhost:5000';
+  const REDIRECT_URI = 'https://myceli.us/callback';
+  const BACKEND_URL = 'https://myceli.us';
 
   // Initiate OAuth flow
   const login = () => {

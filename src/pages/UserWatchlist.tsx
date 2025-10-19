@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../contexts/ApiContext';
 import { getUserWatchlist } from '../api/trakt';
 
 interface Show {
@@ -85,10 +85,10 @@ function UserWatchlist() {
   const totalItems = watchlist.shows.length + watchlist.movies.length;
 
   return (
-    <div style={{ margin: '20px' }}>
+    <div style={{ padding: '20px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
         <h2>Your Watchlist ({totalItems} items)</h2>
-        <button onClick={handleRefresh} style={{ cursor: 'pointer' }}>
+        <button onClick={handleRefresh} style={{ padding: '10px 20px', cursor: 'pointer' }}>
           Refresh
         </button>
       </div>
@@ -97,7 +97,7 @@ function UserWatchlist() {
         <div style={{ marginBottom: '30px' }}>
           <h3>TV Shows ({watchlist.shows.length})</h3>
           {watchlist.shows.map(item => (
-            <div key={item.id} style={{ marginBottom: '15px', border: '1px solid #ccc', borderRadius: '5px', padding: '8px 0' }}>
+            <div key={item.id} style={{ marginBottom: '15px', padding: '10px', border: '1px solid #ccc', borderRadius: '5px' }}>
               <h4>{item.show.title} {item.show.year && `(${item.show.year})`}</h4>
               {item.show.overview && <p>{item.show.overview}</p>}
             </div>
@@ -109,7 +109,7 @@ function UserWatchlist() {
         <div>
           <h3>Movies ({watchlist.movies.length})</h3>
           {watchlist.movies.map(item => (
-            <div key={item.id} style={{ marginBottom: '15px', border: '1px solid #ccc', borderRadius: '5px', padding: '8px 0' }}>
+            <div key={item.id} style={{ marginBottom: '15px', padding: '10px', border: '1px solid #ccc', borderRadius: '5px' }}>
               <h4>{item.movie.title} {item.movie.year && `(${item.movie.year})`}</h4>
               {item.movie.overview && <p>{item.movie.overview}</p>}
             </div>

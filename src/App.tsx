@@ -1,10 +1,8 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { Toaster } from '@/components/ui/toaster';
-import { Toaster as Sonner } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
-import { AuthProvider } from './contexts/AuthContext';
+import { ApiProvider } from './contexts/ApiContext';
 
 // Client routes (priority)
 import OnboardingFlow from './pages/OnboardingFlow';
@@ -12,10 +10,15 @@ import Auth from './pages/Auth';
 import Connections from './pages/Connections';
 import Index from './pages/Index';
 
-// Existing routes
-import Callback from './components/Callback';
+// Trakt routes
 import UserWatchlist from './pages/UserWatchlist';
 import ProfileSelect from './pages/ProfileSelect';
+
+// Spotify routes
+import SpotifyProfile from './pages/SpotifyProfile';
+
+// Unified callback component
+import ApiCallback from './components/ApiCallback';
 
 import './global.css';
 import './App.css';
@@ -30,7 +33,7 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <AuthProvider>
+        <ApiProvider>
           <BrowserRouter>
             <Routes>
               {/* Always redirect / to /intro for animation start */}
@@ -46,13 +49,17 @@ function App() {
               {/* /home also shows dashboard */}
               <Route path="/home" element={<Index />} />
 
-              {/* Existing routes */}
+              {/* Trakt routes */}
               <Route path="/trakt/connect" element={<ProfileSelect />} />
-              <Route path="/callback" element={<Callback />} />
+              <Route path="/callback" element={<ApiCallback service="trakt" />} />
               <Route path="/trakt/watchlist" element={<UserWatchlist />} />
+
+              {/* Spotify routes */}
+              <Route path="/spotify/callback" element={<ApiCallback service="spotify" />} />
+              <Route path="/spotify/profile" element={<SpotifyProfile />} />
             </Routes>
           </BrowserRouter>
-        </AuthProvider>
+        </ApiProvider>
       </TooltipProvider>
     </QueryClientProvider>
   )

@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../contexts/ApiContext';
 import { useEffect } from 'react';
 import './ProfileSelect.css';
 

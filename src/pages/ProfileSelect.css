@@ -17,7 +17,7 @@
 .success-box {
   background: white;
   border-radius: 12px;
-  padding: 24px 20px;
+  padding: 50px 40px;
   text-align: center;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
 }
@@ -33,12 +33,12 @@
 .success-box p {
   font-size: 16px;
   color: #666;
-  margin-bottom: 18px;
+  margin-bottom: 30px;
   line-height: 1.5;
 }
 
 .connect-button {
-  padding: 12px 28px;
+  padding: 15px 40px;
   background-color: #ed1c24;
   color: white;
   border: none;
@@ -74,7 +74,7 @@
 }
 
 .dashboard-button {
-  padding: 12px 28px;
+  padding: 15px 40px;
   background-color: #007bff;
   color: white;
   border: none;
