@@ -27,14 +27,16 @@ export default function Index() {
     try {
       const users = await getAllUsers();
       const currentUserId = getCurrentUserId();
+      const friends = currentUserId ? await getFriends(currentUserId) : [];
+      const friendIds = new Set(friends.map(friend => friend.id));
 
       console.log('Current user ID:', currentUserId);
       console.log('All users:', users);
+      console.log('Current friends:', friendIds);
 
-      // Convert User[] to Profile[] and exclude current user
-      // Don't filter out friends - let ProfileCard handle the friend status display
+      // Convert User[] to Profile[] and exclude current user and existing friends
       const profiles: Profile[] = users
-        .filter(user => user.id !== currentUserId)
+        .filter(user => user.id !== currentUserId && !friendIds.has(user.id))
         .map(user => ({
           id: user.id,
           name: user.username,
@@ -44,7 +46,7 @@ export default function Index() {
           mutualFriends: 0
         }));
 
-      console.log('All profiles (including potential friends):', profiles);
+      console.log('Filtered profiles (excluding friends):', profiles);
       setAllUsers(profiles);
     } catch (error) {
       console.error('Error loading users:', error);

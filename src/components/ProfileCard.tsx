@@ -101,21 +101,19 @@ export default function ProfileCard({
       </div>
 
       {/* Add Friend Button - Full Width Below */}
-      {!isFriend && (
-        <button
-          onClick={handleAddFriend}
-          disabled={isAdded || loading}
-          className={`w-full py-2.5 md:py-3 rounded-lg md:rounded-xl font-semibold flex items-center justify-center gap-2 transition-all duration-200 shadow-md hover:shadow-lg text-sm md:text-base ${
-            isAdded
-              ? "bg-[hsl(var(--primary))]/20 text-[hsl(var(--primary))] border border-[hsl(var(--primary))]/30"
-              : "bg-gradient-to-r from-[hsl(280,95%,52%)] to-[hsl(180,85%,48%)] hover:from-[hsl(280,95%,47%)] hover:to-[hsl(180,85%,43%)] text-white"
-          }`}
-        >
-          <UserPlus size={18} className="md:hidden" />
-          <UserPlus size={20} className="hidden md:block" />
-          {loading ? "Adding..." : isAdded ? "Friend Added!" : "Add Friend"}
-        </button>
-      )}
+      <button
+        onClick={handleAddFriend}
+        disabled={isFriend || loading}
+        className={`w-full py-2.5 md:py-3 rounded-lg md:rounded-xl font-semibold flex items-center justify-center gap-2 transition-all duration-200 shadow-md hover:shadow-lg text-sm md:text-base ${
+          isFriend
+            ? "bg-[hsl(var(--primary))]/20 text-[hsl(var(--primary))] border border-[hsl(var(--primary))]/30"
+            : "bg-gradient-to-r from-[hsl(280,95%,52%)] to-[hsl(180,85%,48%)] hover:from-[hsl(280,95%,47%)] hover:to-[hsl(180,85%,43%)] text-white"
+        }`}
+      >
+        <UserPlus size={18} className="md:hidden" />
+        <UserPlus size={20} className="hidden md:block" />
+        {loading ? "Adding..." : isFriend ? "Friend Added!" : "Add Friend"}
+      </button>
     </div>
   );
 }
