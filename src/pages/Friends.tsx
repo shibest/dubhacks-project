@@ -95,7 +95,10 @@ export default function Friends() {
       // Already on friends
     } else if (tab === "home") {
       navigate("/home");
-    } else {
+    } else if (tab === "games") {
+      navigate("/games");
+    }
+    else {
       console.log("Navigate to:", tab);
     }
   };
