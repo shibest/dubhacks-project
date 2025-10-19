@@ -54,7 +54,7 @@ export default function Auth() {
 
   return (
     <div
-      className={`min-h-screen bg-gradient-to-br from-[hsl(260,40%,15%)] via-[hsl(210,14%,11%)] to-[hsl(260,30%,12%)] flex items-center justify-center px-4 transition-opacity duration-500 ${
+      className={`min-h-screen bg-gradient-to-br from-[hsl(260,30%,8%)] via-[hsl(265,35%,12%)] to-[hsl(270,40%,10%)] flex items-center justify-center px-4 transition-opacity duration-500 ${
         isVisible ? "opacity-100" : "opacity-0"
       }`}
       style={{ paddingTop: 0 }}
@@ -62,13 +62,13 @@ export default function Auth() {
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="flex justify-center mb-4 mt-2">
-          <div className="w-16 h-16">
+          <div className="w-24 h-24">
             <MyceliumLogo />
           </div>
         </div>
 
         {/* Title */}
-        <h1 className="text-2xl md:text-3xl font-bold text-center mb-1 bg-gradient-to-r from-[hsl(260,80%,60%)] to-[hsl(280,90%,70%)] bg-clip-text text-transparent">
+        <h1 className="text-2xl md:text-3xl font-bold text-center mb-1 bg-gradient-to-r from-[hsl(280,95%,52%)] via-[hsl(180,85%,48%)] to-[hsl(90,80%,48%)] bg-clip-text text-transparent">
           Create Account
         </h1>
         <p className="text-center text-[hsl(var(--muted-foreground))] mb-4 text-sm">
@@ -168,7 +168,7 @@ export default function Auth() {
           {/* Submit Button */}
           <button
             type="submit"
-            className="w-full py-2 px-3 mt-4 bg-gradient-to-r from-[hsl(260,80%,60%)] to-[hsl(280,90%,70%)] hover:from-[hsl(260,80%,55%)] hover:to-[hsl(280,90%,65%)] text-white font-semibold rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl text-base"
+            className="w-full py-2 px-3 mt-4 bg-gradient-to-r from-[hsl(280,95%,52%)] to-[hsl(180,85%,48%)] hover:from-[hsl(280,95%,47%)] hover:to-[hsl(180,85%,43%)] text-white font-semibold rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl text-base"
           >
             Create Account
           </button>

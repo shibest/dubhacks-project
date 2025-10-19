@@ -60,55 +60,110 @@
   }
 
   .dark {
-    --background: 210 14% 11%;
-    --foreground: 200 10% 85%;
+    --background: 240 25% 6%;
+    --foreground: 240 15% 92%;
 
-    --card: 210 12% 16%;
-    --card-foreground: 200 10% 90%;
+    --card: 240 20% 12%;
+    --card-foreground: 240 15% 95%;
 
-    --popover: 210 12% 16%;
-    --popover-foreground: 200 10% 90%;
+    --popover: 240 20% 12%;
+    --popover-foreground: 240 15% 95%;
 
-    --primary: 260 80% 60%;
-    --primary-foreground: 210 14% 11%;
+    --primary: 280 95% 52%;
+    --primary-foreground: 240 25% 6%;
 
-    --secondary: 210 12% 22%;
-    --secondary-foreground: 200 10% 85%;
+    --secondary: 180 85% 48%;
+    --secondary-foreground: 240 25% 6%;
 
-    --muted: 210 10% 35%;
-    --muted-foreground: 200 10% 65%;
+    --muted: 240 15% 32%;
+    --muted-foreground: 240 12% 65%;
 
-    --accent: 260 80% 60%;
-    --accent-foreground: 210 14% 11%;
+    --accent: 90 80% 48%;
+    --accent-foreground: 240 25% 6%;
 
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 210 10% 25%;
-    --input: 210 12% 18%;
-    --ring: 260 80% 60%;
-    --sidebar-background: 210 14% 11%;
-    --sidebar-foreground: 200 10% 85%;
-    --sidebar-primary: 260 80% 60%;
-    --sidebar-primary-foreground: 210 14% 11%;
-    --sidebar-accent: 210 12% 22%;
-    --sidebar-accent-foreground: 200 10% 85%;
-    --sidebar-border: 210 10% 25%;
-    --sidebar-ring: 260 80% 60%;
+    --border: 240 20% 20%;
+    --input: 240 18% 14%;
+    --ring: 280 95% 52%;
+    --sidebar-background: 240 25% 6%;
+    --sidebar-foreground: 240 15% 92%;
+    --sidebar-primary: 280 95% 52%;
+    --sidebar-primary-foreground: 240 25% 6%;
+    --sidebar-accent: 90 80% 48%;
+    --sidebar-accent-foreground: 240 25% 6%;
+    --sidebar-border: 240 20% 20%;
+    --sidebar-ring: 280 95% 52%;
   }
 }
 
 @layer base {
-  html {
-    @apply dark bg-background text-foreground;
+  /* Basic box-sizing reset */
+  *, *::before, *::after {
+    box-sizing: border-box;
   }
 
-  * {
-    @apply border-border;
+  html {
+    /* use Tailwind for colors via classes, but ensure base fills viewport */
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+  }
+
+  html.dark {
+    color-scheme: dark;
+  }
+
+  /* body/base typography and smoothing (merged from index.css) */
+  :root {
+    font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+    line-height: 1.5;
+    font-weight: 400;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   body {
-    @apply bg-background text-foreground;
+    /* Keep Tailwind variables for colors but ensure no default margins or padding */
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    margin: 0;
+    min-width: 320px;
+    min-height: 100vh;
+    display: block;
+  }
+
+  /* Make the app root fill the viewport and avoid margin collapse pushing content down */
+  html, body, #root {
+    height: 100%;
+    min-height: 100vh;
+    width: 100%;
+    min-width: 100vw;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* root serves as the main app container; don't force all children to flex (that caused layout stretching)
+     but keep it a column flex container so footers/headers can sit naturally. Overflow creates a new BFC to
+     prevent child margins from collapsing out of the root and shifting the page. */
+  #root {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    align-items: stretch;
+    justify-content: flex-start;
+    overflow: auto;
+  }
+
+  /* Prevent margin collapse where the first child's top margin pushes the whole page down */
+  #root > :first-child {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
   }
 
   :where(p, span, li, h1, h2, h3, h4, h5, h6, a, button, label, td, th) {
@@ -120,6 +175,48 @@
   code {
     overflow-x: auto;
     white-space: pre;
+  }
+
+  /* Additional styles merged from src/index.css */
+  a {
+    font-weight: 500;
+    color: #646cff;
+    text-decoration: inherit;
+  }
+  a:hover {
+    color: #535bf2;
+  }
+
+  button {
+    border-radius: 8px;
+    border: 1px solid transparent;
+    padding: 0.6em 1.2em;
+    font-size: 1em;
+    font-weight: 500;
+    font-family: inherit;
+    background-color: #1a1a1a;
+    cursor: pointer;
+    transition: border-color 0.25s;
+  }
+  button:hover {
+    border-color: #646cff;
+  }
+  button:focus,
+  button:focus-visible {
+    outline: 4px auto -webkit-focus-ring-color;
+  }
+
+  @media (prefers-color-scheme: light) {
+    :root {
+      color: #213547;
+      background-color: #ffffff;
+    }
+    a:hover {
+      color: #747bff;
+    }
+    button {
+      background-color: #f9f9f9;
+    }
   }
 }
 

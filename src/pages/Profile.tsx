@@ -325,19 +325,19 @@ export default function Profile() {
 
   return (
     <div
-      className={`min-h-screen bg-gradient-to-br from-[hsl(260,40%,15%)] via-[hsl(210,14%,11%)] to-[hsl(260,30%,12%)] flex items-start justify-center px-4 pt-16 transition-opacity duration-500 ${
+      className={`h-screen bg-gradient-to-br from-[hsl(260,30%,8%)] via-[hsl(265,35%,12%)] to-[hsl(270,40%,10%)] flex items-start justify-center px-4 pt-16 transition-opacity duration-500 overflow-y-auto ${
         isVisible ? "opacity-100" : "opacity-0"
       }`}
     >
       <div className="w-full max-w-2xl py-4">
         {/* Header */}
         <div className="flex justify-center mb-4">
-          <div className="w-12 h-12">
+          <div className="w-20 h-20">
             <MyceliumLogo />
           </div>
         </div>
 
-        <h1 className="text-2xl font-bold text-center mb-1 bg-gradient-to-r from-[hsl(260,80%,60%)] to-[hsl(280,90%,70%)] bg-clip-text text-transparent">
+        <h1 className="text-2xl font-bold text-center mb-1 bg-gradient-to-r from-[hsl(280,95%,52%)] via-[hsl(180,85%,48%)] to-[hsl(90,80%,48%)] bg-clip-text text-transparent">
           My Profile
         </h1>
         <p className="text-center text-[hsl(var(--muted-foreground))] mb-4 text-sm">
@@ -570,7 +570,7 @@ export default function Profile() {
               {profile.musicGenres.map((genre) => (
                 <div
                   key={genre}
-                  className="flex items-center gap-1 px-3 py-1 rounded-full bg-gradient-to-r from-[hsl(260,80%,60%)] to-[hsl(280,90%,70%)] text-white text-xs font-medium"
+                  className="flex items-center gap-1 px-3 py-1 rounded-full bg-gradient-to-r from-[hsl(280,95%,52%)] to-[hsl(180,85%,48%)] text-white text-xs font-medium"
                 >
                   {genre}
                   <button
@@ -638,7 +638,7 @@ export default function Profile() {
               {profile.favoriteGames.map((game) => (
                 <div
                   key={game}
-                  className="flex items-center gap-1 px-3 py-1 rounded-full bg-gradient-to-r from-[hsl(260,80%,60%)] to-[hsl(280,90%,70%)] text-white text-xs font-medium"
+                  className="flex items-center gap-1 px-3 py-1 rounded-full bg-gradient-to-r from-[hsl(280,95%,52%)] to-[hsl(180,85%,48%)] text-white text-xs font-medium"
                 >
                   {game}
                   <button
@@ -706,7 +706,7 @@ export default function Profile() {
               {profile.favoriteShows.map((show) => (
                 <div
                   key={show}
-                  className="flex items-center gap-1 px-3 py-1 rounded-full bg-gradient-to-r from-[hsl(260,80%,60%)] to-[hsl(280,90%,70%)] text-white text-xs font-medium"
+                  className="flex items-center gap-1 px-3 py-1 rounded-full bg-gradient-to-r from-[hsl(280,95%,52%)] to-[hsl(180,85%,48%)] text-white text-xs font-medium"
                 >
                   {show}
                   <button
@@ -765,7 +765,7 @@ export default function Profile() {
         {/* Back Button */}
         <button
           onClick={handleBackToDashboard}
-          className="w-full py-2.5 px-4 bg-gradient-to-r from-[hsl(260,80%,60%)] to-[hsl(280,90%,70%)] hover:from-[hsl(260,80%,55%)] hover:to-[hsl(280,90%,65%)] text-white font-semibold rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl text-base"
+          className="w-full py-2.5 px-4 bg-gradient-to-r from-[hsl(280,95%,52%)] to-[hsl(180,85%,48%)] hover:from-[hsl(280,95%,47%)] hover:to-[hsl(180,85%,43%)] text-white font-semibold rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl text-base"
         >
           Back to Dashboard
         </button>
