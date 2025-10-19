@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import { Send, Image, Smile, Paperclip, ArrowLeft, FileText } from "lucide-react";
-import { generateGamePrompt, generateGameResponse } from "@/api/gemini";
+import { generateGamePrompt, generateGameResponse, generatePersonalityResponse } from "@/api/gemini";
 import { getFriends, getCurrentUserId } from "@/lib/friends";
 
 interface Message {
@@ -205,26 +205,51 @@ export default function Chat() {
           }, 1000 + Math.random() * 2000);
         }
       } else {
-        // Friend chat mode - simulate response
-        setTimeout(() => {
-          const responses = [
-            "That sounds awesome! 😊",
-            "I totally agree!",
-            "Tell me more about that!",
-            "That's interesting!",
-            "Haha, that's funny!",
-            "I feel the same way!"
-          ];
-          const randomResponse = responses[Math.floor(Math.random() * responses.length)];
-          const responseMessage: Message = {
-            id: (Date.now() + 1).toString(),
-            text: randomResponse,
-            sender: 'other',
-            timestamp: new Date(),
-            type: 'text'
-          };
-          setMessages(prev => [...prev, responseMessage]);
-        }, 1000 + Math.random() * 2000);
+        // Friend chat mode - use personality-based AI response
+        if (friend) {
+          // Build conversation history for context
+          const conversationHistory = messages.map(msg => ({
+            sender: msg.sender,
+            text: msg.text
+          }));
+
+          generatePersonalityResponse(
+            friend.username,
+            friend.personality || "friendly and conversational",
+            friend.interests || [],
+            conversationHistory,
+            newMessage
+          ).then(response => {
+            const responseMessage: Message = {
+              id: (Date.now() + 1).toString(),
+              text: response,
+              sender: 'other',
+              timestamp: new Date(),
+              type: 'text'
+            };
+            setMessages(prev => [...prev, responseMessage]);
+          }).catch(error => {
+            console.error('Error generating personality response:', error);
+            // Fallback to generic response
+            const fallbackResponses = [
+              "That sounds awesome! 😊",
+              "I totally agree!",
+              "Tell me more about that!",
+              "That's interesting!",
+              "Haha, that's funny!",
+              "I feel the same way!"
+            ];
+            const randomResponse = fallbackResponses[Math.floor(Math.random() * fallbackResponses.length)];
+            const responseMessage: Message = {
+              id: (Date.now() + 1).toString(),
+              text: randomResponse,
+              sender: 'other',
+              timestamp: new Date(),
+              type: 'text'
+            };
+            setMessages(prev => [...prev, responseMessage]);
+          });
+        }
       }
     }
   };
