@@ -71,29 +71,29 @@ export default function Games() {
           id: "guilty-pleasure",
           title: "Guilty Pleasure Guess",
           description: "Reveal that song nobody knows you listen to",
-          icon: "🎵",
-          action: () => console.log("Guilty Pleasure Guess clicked")
+          icon: "🤫",
+          action: () => navigate("/games/guiltypleasure/anim")
         },
         {
           id: "kill-my-vibe",
           title: "Kill My Vibe",
           description: "Share top genres/artists to find matches or get roasted",
-          icon: "🎧",
-          action: () => console.log("Kill My Vibe clicked")
+          icon: "🥀",
+          action: () => navigate("/games/killmyvibe/anim")
         },
         {
           id: "hot-takes-fm",
           title: "Hot Takes FM",
           description: "React to generated music opinions with ❤️/💀",
-          icon: "📻",
-          action: () => console.log("Hot Takes FM clicked")
+          icon: "📻🔥",
+          action: () => navigate("/games/hottakesfm/anim")
         },
         {
           id: "two-truths-vibe",
           title: "Two Truths and a Vibe",
           description: "Guess which fact about their music taste is fake",
-          icon: "🎭",
-          action: () => console.log("Two Truths and a Vibe clicked")
+          icon: "✅🎵",
+          action: () => navigate("/games/twotruthsvibe/anim")
         }
       ]
     },
@@ -108,29 +108,29 @@ export default function Games() {
           id: "first-best-forever",
           title: "First, Best, Forever",
           description: "Share stories about games from your Steam library",
-          icon: "🎮",
-          action: () => console.log("First, Best, Forever clicked")
+          icon: "1️⃣⭐♾️",
+          action: () => navigate("/games/firstbestforever/anim")
         },
         {
           id: "patch-notes",
           title: "Patch Notes",
           description: "Propose funny patch notes for favorite games",
           icon: "📝",
-          action: () => console.log("Patch Notes clicked")
+          action: () => navigate("/games/patchnotes/anim")
         },
         {
           id: "fight-club",
           title: "Fight Club",
           description: "Debate who would win between characters from shared series",
-          icon: "⚔️",
-          action: () => console.log("Fight Club clicked")
+          icon: "🥊👊",
+          action: () => navigate("/games/fightclub/anim")
         },
         {
           id: "inventory-drop",
           title: "Inventory Drop",
           description: "Drop random imaginary items for others to pick up",
           icon: "🎒",
-          action: () => console.log("Inventory Drop clicked")
+          action: () => navigate("/games/inventorydrop/anim")
         }
       ]
     },
