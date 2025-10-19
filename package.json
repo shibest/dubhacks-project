@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "backend": "tsx backend/server.ts",
-    "start": "concurrently \"npm run dev\" \"npm run backend\" --names \"frontend,backend\" --prefix-colors \"cyan,magenta\"",
+    "startdev": "concurrently \"npm run dev\" \"npm run backend\" --names \"frontend,backend\" --prefix-colors \"cyan,magenta\"",
+    "start": "concurrently \"npm run build\" \"npm run backend\" --names \"frontend,backend\" --prefix-colors \"cyan,magenta\"",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"
