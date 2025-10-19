@@ -13,6 +13,8 @@ import Profile from './pages/Profile';
 import Index from './pages/Index';
 import Friends from './pages/Friends';
 import Games from './pages/Games';
+import GameAnim from './pages/GameAnim';
+import Chat from './pages/Chat';
 
 // Unified callback component
 import ApiCallback from './components/ApiCallback';
@@ -53,6 +55,10 @@ function App() {
               <Route path="/friends" element={<Friends />} />
               {/* Games screen */}
               <Route path="/games" element={<Games />} />
+              {/* Game animation screen */}
+              <Route path="/gameanim" element={<GameAnim />} />
+              {/* Chat screen */}
+              <Route path="/chat" element={<Chat />} />
 
               {/* Trakt routes */}
               <Route path="/callback" element={<ApiCallback service="trakt" />} />

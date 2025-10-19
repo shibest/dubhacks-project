@@ -2,52 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import BottomTaskbar from "@/components/BottomTaskbar";
-import { Sparkles, Music, Gamepad2, Tv } from "lucide-react";
-
-interface Game {
-  name: string;
-  description: string;
-}
-
-interface GameCategory {
-  title: string;
-  icon: React.ReactNode;
-  games: Game[];
-}
-
-const gameCategories: GameCategory[] = [
-  {
-    title: "General",
-    icon: <Sparkles className="w-4 h-4" />,
-    games: [
-      { name: "Hot Takes", description: "" },
-      { name: "Emoji Story", description: "" },
-      { name: "Two Truths and a Vibe", description: "" },
-    ],
-  },
-  {
-    title: "Music",
-    icon: <Music className="w-4 h-4" />,
-    games: [
-      { name: "Guilty Pleasure Guess", description: "" },
-      { name: "Spicy Statements", description: "" },
-    ],
-  },
-  {
-    title: "Gaming",
-    icon: <Gamepad2 className="w-4 h-4" />,
-    games: [
-      { name: "First, Best, Forever", description: "" },
-    ],
-  },
-  {
-    title: "Movies & Shows",
-    icon: <Tv className="w-4 h-4" />,
-    games: [
-      { name: "Let's Rate It", description: "" },
-    ],
-  },
-];
+import { Flame, Zap, Trophy, Target } from "lucide-react";
 
 export default function Games() {
   const navigate = useNavigate();
@@ -57,30 +12,64 @@ export default function Games() {
     setIsVisible(true);
   }, []);
 
-  const handleGameClick = (gameName: string) => {
-    console.log(`Selected game: ${gameName}`);
-    // TODO: Navigate to game page or start game
-  };
-
-  const handleNavigate = (tab: string) => {
-    if (tab === "friends") {
-      navigate("/friends");
-    } else if (tab === "games") {
-      // Already on games
-    } else if (tab === "home") {
-      navigate("/home");
-    } else {
-      console.log("Navigate to:", tab);
-    }
-  };
-
   const handleCommunityClick = () => {
-    navigate("/dashboard");
+    console.log("Community clicked");
   };
 
   const handleProfileClick = () => {
     navigate("/profile");
   };
+
+  const handleNavigate = (tab: string) => {
+    if (tab === "games") {
+      // Already on games
+    } else if (tab === "home") {
+      navigate("/home");
+    } else if (tab === "friends") {
+      navigate("/friends");
+    } else {
+      console.log("Navigate to:", tab);
+    }
+  };
+
+  const handleHotTake = () => {
+    navigate("/gameanim");
+  };
+
+  const games = [
+    {
+      id: "debate",
+      title: "Hot Takes",
+      description: "Share controversial opinions and debate with friends",
+      icon: Flame,
+      color: "from-red-500 to-orange-500",
+      action: handleHotTake
+    },
+    {
+      id: "trivia",
+      title: "Trivia Challenge",
+      description: "Test your knowledge across various topics",
+      icon: Zap,
+      color: "from-yellow-400 to-orange-500",
+      action: () => console.log("Trivia clicked")
+    },
+    {
+      id: "leaderboard",
+      title: "Leaderboards",
+      description: "See how you rank against other players",
+      icon: Trophy,
+      color: "from-purple-500 to-pink-500",
+      action: () => console.log("Leaderboard clicked")
+    },
+    {
+      id: "challenges",
+      title: "Daily Challenges",
+      description: "Complete fun challenges to earn points",
+      icon: Target,
+      color: "from-blue-500 to-cyan-500",
+      action: () => console.log("Challenges clicked")
+    }
+  ];
 
   return (
     <div
@@ -98,82 +87,64 @@ export default function Games() {
         <div className="h-full overflow-y-auto">
           <div className="pb-4 pt-4 md:pt-6">
             <div className="max-w-2xl mx-auto px-3 md:px-4">
-              {/* Page Title */}
-              <div className="mb-6 md:mb-8">
-                <h1 className="text-2xl md:text-3xl font-bold text-center mb-2 bg-gradient-to-r from-[hsl(280,95%,52%)] via-[hsl(180,85%,48%)] to-[hsl(90,80%,48%)] bg-clip-text text-transparent">
-                  Connection Games
+              <div className="mb-6">
+                <h1 className="text-2xl font-bold text-center mb-2 bg-gradient-to-r from-[hsl(280,95%,52%)] via-[hsl(180,85%,48%)] to-[hsl(90,80%,48%)] bg-clip-text text-transparent">
+                  Games & Challenges
                 </h1>
                 <p className="text-center text-[hsl(var(--muted-foreground))] text-sm">
-                  Pick a game to play with your friends and discover shared interests
+                  Play games, share opinions, and compete with friends
                 </p>
               </div>
 
-              {/* Game Categories */}
-              <div className="space-y-6 md:space-y-8">
-                {gameCategories.map((category, categoryIndex) => (
-                  <div
-                    key={category.title}
-                    className={`transition-all duration-700 ease-out delay-${categoryIndex * 100} ${
-                      isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
-                    }`}
-                  >
-                    {/* Category Header */}
-                    <div className="flex items-center gap-2 mb-3">
-                      <div className="p-1.5 rounded-md bg-[hsl(var(--accent))]">
-                        {category.icon}
-                      </div>
-                      <h2 className="text-lg md:text-xl font-semibold text-[hsl(var(--foreground))]">
-                        {category.title}
-                      </h2>
-                    </div>
+              <div className="grid grid-cols-1 gap-4 md:gap-6">
+                {games.map((game) => {
+                  const Icon = game.icon;
+                  return (
+                    <div
+                      key={game.id}
+                      onClick={game.action}
+                      className="bg-[hsl(var(--card))] rounded-2xl md:rounded-3xl p-6 border border-[hsl(var(--border))] hover:border-[hsl(var(--primary))] transition-all duration-300 hover:shadow-xl shadow-md cursor-pointer group"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className={`w-12 h-12 md:w-16 md:h-16 rounded-2xl bg-gradient-to-br ${game.color} flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+                          <Icon size={28} className="text-white" />
+                        </div>
 
-                    {/* Game Grid */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      {category.games.map((game) => (
-                        <button
-                          key={game.name}
-                          onClick={() => handleGameClick(game.name)}
-                          className={`group relative p-4 md:p-5 rounded-lg bg-[hsl(var(--card))]
-                            border border-[hsl(var(--border))] hover:border-[hsl(var(--primary))]
-                            transition-all duration-300 ease-out hover:scale-[1.02] hover:shadow-lg
-                            text-left ${
-                              isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
-                            }`}
-                        >
-                          {/* Game Name */}
-                          <h3 className="text-base md:text-lg font-semibold text-[hsl(var(--foreground))] mb-2 group-hover:text-[hsl(var(--primary))] transition-colors">
-                            {game.name}
+                        <div className="flex-1">
+                          <h3 className="text-lg md:text-xl font-bold text-[hsl(var(--foreground))] mb-1">
+                            {game.title}
                           </h3>
+                          <p className="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed">
+                            {game.description}
+                          </p>
+                        </div>
 
-                          {/* Description Space */}
-                          <div className="min-h-[48px] md:min-h-[60px]">
-                            <p className="text-[hsl(var(--muted-foreground))] text-sm leading-relaxed">
-                              {game.description || ""}
-                            </p>
-                          </div>
-
-                          {/* Play indicator */}
-                          <div className="mt-3 flex items-center gap-2 text-[hsl(var(--muted-foreground))] group-hover:text-[hsl(var(--primary))] transition-colors">
-                            <span className="text-xs md:text-sm font-medium">Play Now</span>
-                            <svg
-                              className="w-3 h-3 md:w-4 md:h-4 transform group-hover:translate-x-1 transition-transform"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              stroke="currentColor"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M9 5l7 7-7 7"
-                              />
-                            </svg>
-                          </div>
-                        </button>
-                      ))}
+                        <div className="text-[hsl(var(--muted-foreground))] group-hover:text-[hsl(var(--primary))] transition-colors">
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="m9 18 6-6-6-6"/>
+                          </svg>
+                        </div>
+                      </div>
                     </div>
+                  );
+                })}
+              </div>
+
+              {/* Stats Section */}
+              <div className="mt-8">
+                <h2 className="text-lg font-semibold text-[hsl(var(--foreground))] mb-4">
+                  Your Stats
+                </h2>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-[hsl(var(--card))] rounded-xl p-4 border border-[hsl(var(--border))]">
+                    <div className="text-2xl font-bold text-[hsl(var(--primary))]">0</div>
+                    <div className="text-sm text-[hsl(var(--muted-foreground))]">Games Played</div>
                   </div>
-                ))}
+                  <div className="bg-[hsl(var(--card))] rounded-xl p-4 border border-[hsl(var(--border))]">
+                    <div className="text-2xl font-bold text-[hsl(var(--primary))]">0</div>
+                    <div className="text-sm text-[hsl(var(--muted-foreground))]">Points Earned</div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
