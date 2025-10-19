@@ -195,10 +195,10 @@ const initializeSampleUsers = () => {
         personality: 'Adaptable free spirit who thrives on change. Practical dreamer making location-independent life work.'
       }
     ]
-    // Assign communities randomly to users
-    const usersWithCommunities = sampleUsers.map(user => ({
+    // Assign communities randomly to users with balanced distribution
+    const usersWithCommunities = sampleUsers.map((user, index) => ({
       ...user,
-      community: communities[Math.floor(Math.random() * communities.length)]
+      community: communities[index % communities.length]
     }));
 
     saveUsersToLocalStorage(usersWithCommunities)

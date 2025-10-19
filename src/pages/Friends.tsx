@@ -6,48 +6,7 @@ import { Profile } from "@/components/ProfileCard";
 import { getCurrentUserId, getFriends, removeFriend } from "@/lib/friends";
 import { updateFriendsCount } from "@/lib/leaderboard";
 
-const SAMPLE_FRIENDS: Profile[] = [
-  {
-    id: "1",
-    name: "Alex Rivera",
-    username: "alexrivera",
-    avatar: "AR",
-    bio: "Mycology enthusiast and nature explorer. Always discovering new things.",
-    mutualFriends: 3,
-  },
-  {
-    id: "2",
-    name: "Jordan Chen",
-    username: "jordanchen",
-    avatar: "JC",
-    bio: "Digital artist and creative thinker. Building beautiful things online.",
-    mutualFriends: 5,
-  },
-  {
-    id: "3",
-    name: "Sam Taylor",
-    username: "samtaylor",
-    avatar: "ST",
-    bio: "Tech lover and lifelong learner. Coffee addict ☕",
-    mutualFriends: 2,
-  },
-  {
-    id: "4",
-    name: "Morgan Lee",
-    username: "morganlee",
-    avatar: "ML",
-    bio: "Game developer and streamer. Let's build something amazing!",
-    mutualFriends: 8,
-  },
-  {
-    id: "5",
-    name: "Casey Kim",
-    username: "caseykim",
-    avatar: "CK",
-    bio: "Environmental scientist passionate about sustainability.",
-    mutualFriends: 1,
-  },
-];
+// SAMPLE_FRIENDS removed - now using real users from friends.ts
 
 export default function Friends() {
   const navigate = useNavigate();
@@ -56,10 +15,14 @@ export default function Friends() {
   const [loading, setLoading] = useState(true);
   const [selectedCommunity, setSelectedCommunity] = useState("All Communities");
 
+  // Force re-render when friends are added/removed to update UI immediately
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const triggerUpdate = () => setRefreshTrigger(prev => prev + 1);
+
   useEffect(() => {
     setIsVisible(true);
     loadFriends();
-  }, []);
+  }, [refreshTrigger]);
 
   const loadFriends = async () => {
     const currentUserId = getCurrentUserId();
@@ -94,8 +57,8 @@ export default function Friends() {
 
   const handleCommunityChange = (community: string) => {
     setSelectedCommunity(community);
-    // Reload friends with new community filter
-    loadFriends();
+    // Force reload friends with new community filter
+    setRefreshTrigger(prev => prev + 1);
   };
 
   const handleProfileClick = () => {

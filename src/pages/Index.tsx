@@ -76,8 +76,8 @@ export default function Index() {
 
   const handleCommunityChange = (community: string) => {
     setSelectedCommunity(community);
-    // Reload users with new community filter
-    loadUsers();
+    // Force reload users with new community filter
+    setRefreshTrigger(prev => prev + 1);
   };
 
   const handleProfileClick = () => {
@@ -149,7 +149,7 @@ export default function Index() {
                       user.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
                       user.bio.toLowerCase().includes(searchQuery.toLowerCase())
                     )
-                    .slice(0, 10)
+                    .slice(0, 50)
                     .map((user) => (
                       <ProfileCard
                         key={user.id}
