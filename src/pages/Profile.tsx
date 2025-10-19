@@ -243,6 +243,10 @@ export default function Profile() {
     }, 500);
   };
 
+  const getProfileSummary = () => {
+
+  };
+
   return (
     <div
       className={`min-h-screen bg-gradient-to-br from-[hsl(260,40%,15%)] via-[hsl(210,14%,11%)] to-[hsl(260,30%,12%)] flex items-start justify-center px-4 pt-16 transition-opacity duration-500 ${
@@ -312,6 +316,14 @@ export default function Profile() {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* AI-generated Profile Summary */}
+        <div className="mb-4">
+          <h2 className="text-lg font-semibold text-[hsl(var(--foreground))] mb-2">
+            AI-Generated Profile Summary - Powered by Gemini
+          </h2>
+          <p></p>
         </div>
 
         {/* Services Section */}
