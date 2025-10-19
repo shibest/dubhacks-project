@@ -134,7 +134,7 @@ export default function Chat() {
       if (sentMessages == 0) {
         const responseMessage: Message = {
           id: Date.now().toString(),
-          text: `Alright, the results are in! Here's what you said: "${currentMessageText}"\nJust type /continue and I'll reveal other user's hot take!`,
+          text: `Alright, the results are in! Here's what you said: "${currentMessageText}"\nJust type /continue and I'll reveal other user's hot take, and discuss!`,
           sender: 'other',
           timestamp: new Date(),
           type: 'text'
