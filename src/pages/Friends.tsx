@@ -97,8 +97,9 @@ export default function Friends() {
       navigate("/home");
     } else if (tab === "games") {
       navigate("/games");
-    }
-    else {
+    } else if (tab === "settings") {
+      navigate("/settings");
+    } else {
       console.log("Navigate to:", tab);
     }
   };

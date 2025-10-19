@@ -74,6 +74,8 @@ export default function Index() {
       navigate("/friends");
     } else if (tab === "games") {
       navigate("/games");
+    } else if (tab === "settings") {
+      navigate("/settings");
     } else if (tab === "home") {
       // Already on home
     } else {

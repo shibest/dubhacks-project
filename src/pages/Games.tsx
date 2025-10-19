@@ -27,6 +27,8 @@ export default function Games() {
       navigate("/home");
     } else if (tab === "friends") {
       navigate("/friends");
+    } else if (tab === "settings") {
+      navigate("/settings");
     } else {
       console.log("Navigate to:", tab);
     }

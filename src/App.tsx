@@ -13,6 +13,7 @@ import Profile from './pages/Profile';
 import Index from './pages/Index';
 import Friends from './pages/Friends';
 import Games from './pages/Games';
+import Settings from './pages/Settings';
 import GameAnim from './pages/GameAnim';
 import Chat from './pages/Chat';
 import HotTakesAnim from './pages/games/HotTakesAnim';
@@ -75,6 +76,8 @@ function App() {
               <Route path="/friends" element={<Friends />} />
               {/* Games screen */}
               <Route path="/games" element={<Games />} />
+              {/* Settings screen */}
+              <Route path="/settings" element={<Settings />} />
               {/* Game animation screen */}
               <Route path="/gameanim" element={<GameAnim />} />
               {/* Chat screen */}
