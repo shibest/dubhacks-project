@@ -126,13 +126,15 @@ export default function Chat() {
       };
       setSentMessages(prevMessages => prevMessages + 1);
       setMessages(prev => [...prev, message]);
+
+      // Store the current message text before clearing
+      const currentMessageText = newMessage;
       setNewMessage('');
 
       if (sentMessages == 0) {
         const responseMessage: Message = {
           id: Date.now().toString(),
-          text: `Alright, the results are in! Here's what you said: ` + messages[1] +
-                `\nJust type /continue and I'll reveal other user's hot take!`,
+          text: `Alright, the results are in! Here's what you said: "${currentMessageText}"\nJust type /continue and I'll reveal other user's hot take!`,
           sender: 'other',
           timestamp: new Date(),
           type: 'text'
