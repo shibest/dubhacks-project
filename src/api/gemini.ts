@@ -184,3 +184,83 @@ export async function callGemini(prompt: string): Promise<string> {
     throw error;
   }
 }
+
+// Generate a hot take response based on a user's personality
+export async function generatePersonalityHotTake(
+  gamePrompt: string,
+  personality: string,
+  username: string,
+  interests: string[]
+): Promise<string> {
+  try {
+    const prompt = `You are roleplaying as ${username}, a person with this personality: "${personality}".
+Their interests include: ${interests.join(', ')}.
+
+Given this Hot Takes topic from the game prompt: "${gamePrompt}"
+
+Write a single hot take (1-2 sentences max) that this person would say about the topic.
+Make it authentic to their personality and interests. Be opinionated and engaging.
+Do not use asterisks or any special formatting, just write the hot take as natural speech.`;
+
+    const response = await ai.models.generateContent({
+      model: "gemini-2.0-flash-lite",
+      contents: prompt,
+    });
+
+    const hotTake = response.text;
+
+    if (!hotTake) {
+      throw new Error('No hot take generated');
+    }
+
+    return hotTake.trim();
+  } catch (error) {
+    console.error('Error generating personality hot take:', error);
+    throw error;
+  }
+}
+
+// Generate a conversational response based on personality and conversation history
+export async function generatePersonalityResponse(
+  username: string,
+  personality: string,
+  interests: string[],
+  conversationHistory: Array<{ sender: string; text: string }>,
+  userMessage: string
+): Promise<string> {
+  try {
+    // Build conversation context
+    const historyText = conversationHistory
+      .slice(-5) // Last 5 messages for context
+      .map(msg => `${msg.sender === 'user' ? 'User' : username}: ${msg.text}`)
+      .join('\n');
+
+    const prompt = `You are roleplaying as ${username}, a person with this personality: "${personality}".
+Their interests include: ${interests.join(', ')}.
+
+Conversation so far:
+${historyText}
+
+User just said: "${userMessage}"
+
+Respond naturally as ${username} would, staying in character with their personality.
+Keep your response conversational (1-3 sentences). Be engaging and show personality.
+Do not use asterisks or any special formatting, just write as natural speech.`;
+
+    const response = await ai.models.generateContent({
+      model: "gemini-2.0-flash-lite",
+      contents: prompt,
+    });
+
+    const conversationResponse = response.text;
+
+    if (!conversationResponse) {
+      throw new Error('No conversation response generated');
+    }
+
+    return conversationResponse.trim();
+  } catch (error) {
+    console.error('Error generating personality response:', error);
+    throw error;
+  }
+}

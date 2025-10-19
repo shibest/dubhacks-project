@@ -1,67 +1,117 @@
 import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Send, Image, Smile, Paperclip, ArrowLeft, FileText } from "lucide-react";
-import { generateGamePrompt, generateGameResponse } from "@/api/gemini";
+import { Send, ArrowLeft, FileText, UserPlus, X } from "lucide-react";
+import { generateGamePrompt, generatePersonalityHotTake, generatePersonalityResponse } from "@/api/gemini";
+import { User, getLocalStorageUsers } from "@/lib/supabase";
+import { getCurrentUserId, addFriend, areFriends } from "@/lib/friends";
 
 interface Message {
   id: string;
   text: string;
-  sender: 'user' | 'other';
+  sender: 'user' | 'other' | 'system';
   timestamp: Date;
-  type: 'text' | 'image' | 'emoji';
+  type: 'text' | 'emoji';
 }
 
 export default function HotTakesChat() {
   const navigate = useNavigate();
-
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      text: 'The Game Master is typing...',
-      sender: 'other',
+      text: 'Finding you a match...',
+      sender: 'system',
       timestamp: new Date(),
       type: 'text'
     }
   ]);
 
-  const [response, setResponse] = useState('');
-
-  useEffect(() => {
-    // This code will run only once after the initial render
-    const getGamePrompt = async () => {
-      try {
-        const prompt = await generateGamePrompt('hot_takes');
-
-        // Update the first message with the AI prompt
-        setMessages(prev => {
-          const updated = [...prev];
-          updated[0] = {
-            ...updated[0],
-            text: prompt
-          };
-          return updated;
-        });
-      } catch (error) {
-        console.error('Error generating game prompt:', error);
-
-        // Update with error message
-        setMessages(prev => {
-          const updated = [...prev];
-          updated[0] = {
-            ...updated[0],
-            text: 'Sorry, I had trouble loading the game. Please try again!'
-          };
-          return updated;
-        });
-      }
-    }
-    getGamePrompt();
-  }, []);
   const [newMessage, setNewMessage] = useState('');
-  const [sentMessages, setSentMessages] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
   const [showLogs, setShowLogs] = useState(false);
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [matchedUser, setMatchedUser] = useState<User | null>(null);
+  const [gamePhase, setGamePhase] = useState<'loading' | 'user-response' | 'revealing' | 'conversation'>('loading');
+  const [partnerHotTake, setPartnerHotTake] = useState('');
+  const [conversationHistory, setConversationHistory] = useState<Array<{ sender: string; text: string }>>([]);
+  const [isFriend, setIsFriend] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Randomly select a user on mount
+  useEffect(() => {
+    const initializeGame = async () => {
+      try {
+        // Get all users and pick a random one
+        const allUsers = getLocalStorageUsers();
+        const currentUserId = getCurrentUserId();
+        const availableUsers = allUsers.filter(u => u.id !== currentUserId);
+
+        if (availableUsers.length === 0) {
+          setMessages([{
+            id: '1',
+            text: 'No users available to match with. Please try again later!',
+            sender: 'system',
+            timestamp: new Date(),
+            type: 'text'
+          }]);
+          return;
+        }
+
+        const randomUser = availableUsers[Math.floor(Math.random() * availableUsers.length)];
+        setMatchedUser(randomUser);
+
+        // Check if already friends
+        if (currentUserId) {
+          const friendStatus = await areFriends(currentUserId, randomUser.id);
+          setIsFriend(friendStatus);
+        }
+
+        // Generate game prompt
+        const prompt = await generateGamePrompt('hot_takes');
+
+        // Generate partner's hot take in the background
+        if (randomUser.personality) {
+          const hotTake = await generatePersonalityHotTake(
+            prompt,
+            randomUser.personality,
+            randomUser.username,
+            randomUser.interests
+          );
+          setPartnerHotTake(hotTake);
+        }
+
+        // Update messages with the game prompt
+        setMessages([
+          {
+            id: '1',
+            text: `You've been matched with ${randomUser.username}!`,
+            sender: 'system',
+            timestamp: new Date(),
+            type: 'text'
+          },
+          {
+            id: '2',
+            text: prompt,
+            sender: 'system',
+            timestamp: new Date(),
+            type: 'text'
+          }
+        ]);
+
+        setGamePhase('user-response');
+      } catch (error) {
+        console.error('Error initializing game:', error);
+        setMessages([{
+          id: '1',
+          text: 'Sorry, I had trouble loading the game. Please try again!',
+          sender: 'system',
+          timestamp: new Date(),
+          type: 'text'
+        }]);
+      }
+    };
+
+    initializeGame();
+  }, []);
 
   // Load chat logs from localStorage
   const loadChatLogs = () => {
@@ -74,27 +124,19 @@ export default function HotTakesChat() {
     localStorage.setItem('hottakes_chat_logs', JSON.stringify(logs));
   };
 
-  const getGameResponse = async () => {
-    try {
-      setResponse(await generateGameResponse(messages[0].text, 'brash and indignant'));
-    } catch (error) {
-      console.error('Error generating game response:', error);
-    }
-  }
-
   // Save current conversation when leaving chat
   const saveCurrentConversation = () => {
-    if (messages.length > 1) { // Only save if there are actual messages beyond welcome
+    if (messages.length > 2 && matchedUser) {
       const logs = loadChatLogs();
       const conversation = {
         id: Date.now().toString(),
         timestamp: new Date().toISOString(),
         messages: messages,
-        summary: `Hot Takes session with ${messages.length - 1} messages`
+        partner: matchedUser.username,
+        summary: `Hot Takes with ${matchedUser.username} - ${messages.length - 2} messages`
       };
 
-      logs.unshift(conversation); // Add to beginning
-      // Keep only last 10 conversations
+      logs.unshift(conversation);
       if (logs.length > 10) {
         logs.splice(10);
       }
@@ -115,70 +157,124 @@ export default function HotTakesChat() {
     scrollToBottom();
   }, [messages]);
 
-  const handleSendMessage = () => {
-    if (newMessage.trim()) {
-      const message: Message = {
-        id: Date.now().toString(),
-        text: newMessage,
-        sender: 'user',
-        timestamp: new Date(),
-        type: 'text'
-      };
-      setSentMessages(prevMessages => prevMessages + 1);
-      setMessages(prev => [...prev, message]);
+  const handleSendMessage = async () => {
+    if (!newMessage.trim() || !matchedUser) return;
 
-      // Store the current message text before clearing
-      const currentMessageText = newMessage;
-      setNewMessage('');
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      text: newMessage,
+      sender: 'user',
+      timestamp: new Date(),
+      type: 'text'
+    };
 
-      if (sentMessages == 0) {
-        const responseMessage: Message = {
+    setMessages(prev => [...prev, userMessage]);
+    const messageText = newMessage;
+    setNewMessage('');
+
+    if (gamePhase === 'user-response') {
+      // User submitted their hot take
+
+      // Show "revealing" phase
+      setGamePhase('revealing');
+
+      setTimeout(() => {
+        setMessages(prev => [...prev, {
           id: Date.now().toString(),
-          text: `Alright, the results are in! Here's what you said: "${currentMessageText}"\nJust type /continue and I'll reveal other user's hot take, and discuss!`,
-          sender: 'other',
+          text: `Great! Here's what ${matchedUser.username} said about this:`,
+          sender: 'system',
           timestamp: new Date(),
           type: 'text'
-        };
-        setMessages(prev => [...prev, responseMessage]);
-        getGameResponse();
-      }
-      if (sentMessages == 1) {
-        const otherMessage: Message = {
-          id: Date.now().toString(),
-          text: response,
-          sender: 'other',
-          timestamp: new Date(),
-          type: 'text'
-        };
-        setMessages(prev => [...prev, otherMessage]);
-      }
-      // Simulate response after a delay
-      if (sentMessages > 1) {
-          setTimeout(() => {
-          const responses = [
-            "That's a bold take! 🔥",
-            "I respectfully disagree 😅",
-            "Wait, explain your reasoning!",
-            "This is getting heated! 🌶️",
-            "New phone, who dis? 📱",
-            "That's actually kinda based 💀"
-          ];
-          const randomResponse = responses[Math.floor(Math.random() * responses.length)];
-          const responseMessage: Message = {
+        }]);
+
+        setTimeout(() => {
+          setMessages(prev => [...prev, {
             id: (Date.now() + 1).toString(),
-            text: randomResponse,
+            text: partnerHotTake,
+            sender: 'other',
+            timestamp: new Date(),
+            type: 'text'
+          }]);
+
+          // Start conversation mode
+          setGamePhase('conversation');
+          setConversationHistory([
+            { sender: 'user', text: messageText },
+            { sender: 'other', text: partnerHotTake }
+          ]);
+
+          // Generate initial conversation starter from the matched user
+          setTimeout(async () => {
+            try {
+              const response = await generatePersonalityResponse(
+                matchedUser.username,
+                matchedUser.personality || '',
+                matchedUser.interests,
+                [
+                  { sender: 'user', text: messageText },
+                  { sender: 'other', text: partnerHotTake }
+                ],
+                `What do you think about my take? I'm curious about your perspective!`
+              );
+
+              const aiMessage: Message = {
+                id: (Date.now() + 2).toString(),
+                text: response,
+                sender: 'other',
+                timestamp: new Date(),
+                type: 'text'
+              };
+
+              setMessages(prev => [...prev, aiMessage]);
+              setConversationHistory(prev => [...prev, { sender: 'other', text: response }]);
+            } catch (error) {
+              console.error('Error generating conversation starter:', error);
+            }
+          }, 1500);
+        }, 1000);
+      }, 500);
+
+    } else if (gamePhase === 'conversation') {
+      // Conversation mode - generate AI response
+      const updatedHistory = [...conversationHistory, { sender: 'user', text: messageText }];
+      setConversationHistory(updatedHistory);
+
+      try {
+        const response = await generatePersonalityResponse(
+          matchedUser.username,
+          matchedUser.personality || '',
+          matchedUser.interests,
+          updatedHistory,
+          messageText
+        );
+
+        setTimeout(() => {
+          const aiMessage: Message = {
+            id: (Date.now() + 1).toString(),
+            text: response,
             sender: 'other',
             timestamp: new Date(),
             type: 'text'
           };
-          setMessages(prev => [...prev, responseMessage]);
-        }, 1000 + Math.random() * 2000);
-      }
 
+          setMessages(prev => [...prev, aiMessage]);
+          setConversationHistory(prev => [...prev, { sender: 'other', text: response }]);
+        }, 800 + Math.random() * 1200);
+      } catch (error) {
+        console.error('Error generating AI response:', error);
+        const errorMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          text: "Hmm, I'm having trouble responding right now. Can you say that again?",
+          sender: 'other',
+          timestamp: new Date(),
+          type: 'text'
+        };
+        setMessages(prev => [...prev, errorMessage]);
+      }
     }
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
@@ -194,6 +290,28 @@ export default function HotTakesChat() {
       type: 'emoji'
     };
     setMessages(prev => [...prev, message]);
+
+    if (gamePhase === 'conversation' && matchedUser) {
+      // Generate response to emoji
+      const emojiResponses = [
+        "Haha, I'll take that as agreement! 😄",
+        "Interesting reaction! Tell me more about what you think.",
+        "I see what you mean! 👀",
+        "That's one way to respond! 😅"
+      ];
+
+      setTimeout(() => {
+        const response = emojiResponses[Math.floor(Math.random() * emojiResponses.length)];
+        const aiMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          text: response,
+          sender: 'other',
+          timestamp: new Date(),
+          type: 'text'
+        };
+        setMessages(prev => [...prev, aiMessage]);
+      }, 1000);
+    }
   };
 
   const handleBackToGames = () => {
@@ -205,8 +323,29 @@ export default function HotTakesChat() {
     setShowLogs(!showLogs);
   };
 
+  const handleProfileClick = () => {
+    setShowProfileModal(true);
+  };
+
+  const handleAddFriend = async () => {
+    if (!matchedUser) return;
+
+    const currentUserId = getCurrentUserId();
+    if (!currentUserId) return;
+
+    const success = await addFriend(currentUserId, matchedUser.id);
+    if (success) {
+      setIsFriend(true);
+      alert(`You're now friends with ${matchedUser.username}!`);
+    }
+  };
+
   const formatTime = (date: Date) => {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
+
+  const getAvatar = (username: string) => {
+    return username.substring(0, 2).toUpperCase();
   };
 
   return (
@@ -224,11 +363,22 @@ export default function HotTakesChat() {
               <ArrowLeft size={20} />
             </button>
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-                <span className="text-lg">🔥</span>
-              </div>
+              {matchedUser ? (
+                <button
+                  onClick={handleProfileClick}
+                  className="w-10 h-10 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center text-white font-bold hover:scale-105 transition-transform cursor-pointer"
+                >
+                  {getAvatar(matchedUser.username)}
+                </button>
+              ) : (
+                <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                  <span className="text-lg">🔥</span>
+                </div>
+              )}
               <div>
-                <h1 className="font-bold text-lg">Hot Takes Debate</h1>
+                <h1 className="font-bold text-lg">
+                  {matchedUser ? `Chat with ${matchedUser.username}` : 'Hot Takes Debate'}
+                </h1>
                 <p className="text-sm opacity-90">Share your controversial opinions!</p>
               </div>
             </div>
@@ -243,6 +393,60 @@ export default function HotTakesChat() {
           </button>
         </div>
       </div>
+
+      {/* Profile Modal */}
+      {showProfileModal && matchedUser && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setShowProfileModal(false)}>
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex justify-between items-start mb-4">
+              <h2 className="text-2xl font-bold text-gray-800">{matchedUser.username}</h2>
+              <button
+                onClick={() => setShowProfileModal(false)}
+                className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="mb-4">
+              <div className="w-20 h-20 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center text-white font-bold text-3xl mx-auto mb-4">
+                {getAvatar(matchedUser.username)}
+              </div>
+            </div>
+
+            {matchedUser.personality && (
+              <div className="mb-4">
+                <h3 className="font-semibold text-gray-700 mb-2">Personality</h3>
+                <p className="text-gray-600 text-sm">{matchedUser.personality}</p>
+              </div>
+            )}
+
+            <div className="mb-6">
+              <h3 className="font-semibold text-gray-700 mb-2">Interests</h3>
+              <div className="flex flex-wrap gap-2">
+                {matchedUser.interests.map((interest, idx) => (
+                  <span key={idx} className="px-3 py-1 bg-red-100 text-red-700 rounded-full text-sm">
+                    {interest}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            <button
+              onClick={handleAddFriend}
+              disabled={isFriend}
+              className={`w-full py-3 rounded-lg font-semibold flex items-center justify-center gap-2 transition-all ${
+                isFriend
+                  ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                  : 'bg-gradient-to-r from-red-500 to-orange-500 text-white hover:shadow-lg'
+              }`}
+            >
+              <UserPlus size={18} />
+              {isFriend ? 'Already Friends' : 'Add Friend'}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Messages or Logs */}
       {showLogs ? (
@@ -299,16 +503,28 @@ export default function HotTakesChat() {
           {messages.map((message) => (
             <div
               key={message.id}
-              className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+              className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'} items-end gap-2`}
             >
+              {/* Show avatar for 'other' messages */}
+              {message.sender === 'other' && matchedUser && (
+                <button
+                  onClick={handleProfileClick}
+                  className="w-8 h-8 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center text-white font-bold text-xs hover:scale-105 transition-transform flex-shrink-0 cursor-pointer"
+                >
+                  {getAvatar(matchedUser.username)}
+                </button>
+              )}
+
               <div
                 className={`max-w-xs lg:max-w-md px-4 py-2 rounded-2xl shadow-md ${
                   message.sender === 'user'
                     ? 'bg-gradient-to-r from-red-500 to-orange-500 text-white rounded-br-sm'
+                    : message.sender === 'system'
+                    ? 'bg-gray-100 text-gray-700 rounded-lg border border-gray-200'
                     : 'bg-white text-gray-800 rounded-bl-sm border border-gray-200'
                 }`}
               >
-                <p className="text-sm leading-relaxed">{message.text}</p>
+                <p className="text-sm leading-relaxed whitespace-pre-line">{message.text}</p>
                 <p className={`text-xs mt-1 ${
                   message.sender === 'user' ? 'text-orange-100' : 'text-gray-500'
                 }`}>
@@ -322,58 +538,56 @@ export default function HotTakesChat() {
       )}
 
       {/* Message Input */}
-      <div className="bg-white border-t border-gray-200 p-4">
-        {/* Quick Emojis */}
-        <div className="flex gap-2 mb-3 overflow-x-auto pb-2">
-          {['🔥', '😅', '💀', '🌶️', '📱', '🤔', '😤', '🤡', '👀', '💯'].map((emoji) => (
-            <button
-              key={emoji}
-              onClick={() => handleEmojiClick(emoji)}
-              className="flex-shrink-0 w-8 h-8 hover:bg-gray-100 rounded-full flex items-center justify-center transition-colors"
-            >
-              <span className="text-lg">{emoji}</span>
-            </button>
-          ))}
-        </div>
-
-        {/* Input Area */}
-        <div className="flex items-end gap-2">
-          <button className="p-2 text-gray-500 hover:text-gray-700 transition-colors">
-            <Paperclip size={20} />
-          </button>
-
-          <button className="p-2 text-gray-500 hover:text-gray-700 transition-colors">
-            <Image size={20} />
-          </button>
-
-          <div className="flex-1 relative">
-            <textarea
-              value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder="Share your hot take..."
-              className="w-full px-4 py-3 pr-12 bg-gray-50 border border-gray-200 rounded-2xl resize-none focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
-              rows={1}
-              style={{ minHeight: '44px', maxHeight: '120px' }}
-            />
-            <button className="absolute right-2 bottom-2 p-1 text-gray-500 hover:text-gray-700 transition-colors">
-              <Smile size={18} />
-            </button>
+      {!showLogs && (
+        <div className="bg-white border-t border-gray-200 p-4">
+          {/* Quick Emojis */}
+          <div className="flex gap-2 mb-3 overflow-x-auto pb-2">
+            {['🔥', '😅', '💀', '🌶️', '📱', '🤔', '😤', '🤡', '👀', '💯'].map((emoji) => (
+              <button
+                key={emoji}
+                onClick={() => handleEmojiClick(emoji)}
+                className="flex-shrink-0 w-8 h-8 hover:bg-gray-100 rounded-full flex items-center justify-center transition-colors"
+              >
+                <span className="text-lg">{emoji}</span>
+              </button>
+            ))}
           </div>
 
-          <button
-            onClick={handleSendMessage}
-            disabled={!newMessage.trim()}
-            className={`p-3 rounded-full transition-all duration-200 ${
-              newMessage.trim()
-                ? 'bg-gradient-to-r from-red-500 to-orange-500 text-white shadow-lg hover:shadow-xl'
-                : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-            }`}
-          >
-            <Send size={18} />
-          </button>
+          {/* Input Area */}
+          <div className="flex items-end gap-2">
+            <div className="flex-1 relative">
+              <textarea
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder={
+                  gamePhase === 'user-response'
+                    ? "Share your hot take..."
+                    : gamePhase === 'conversation'
+                    ? "Reply to the conversation..."
+                    : "Loading..."
+                }
+                disabled={gamePhase === 'loading' || gamePhase === 'revealing'}
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl resize-none focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent disabled:opacity-50"
+                rows={1}
+                style={{ minHeight: '44px', maxHeight: '120px' }}
+              />
+            </div>
+
+            <button
+              onClick={handleSendMessage}
+              disabled={!newMessage.trim() || gamePhase === 'loading' || gamePhase === 'revealing'}
+              className={`p-3 rounded-full transition-all duration-200 ${
+                newMessage.trim() && gamePhase !== 'loading' && gamePhase !== 'revealing'
+                  ? 'bg-gradient-to-r from-red-500 to-orange-500 text-white shadow-lg hover:shadow-xl'
+                  : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+              }`}
+            >
+              <Send size={18} />
+            </button>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
