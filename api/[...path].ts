@@ -225,17 +225,26 @@ export default async (req: VercelRequest, res: VercelResponse) => {
   console.log('Incoming request:', {
     method: req.method,
     url: req.url,
-    path: (req as any).path
+    path: (req as any).path,
+    query: req.query
   });
 
-  // Strip /api prefix from the URL before passing to Express
-  // Vercel sends: /api/spotify/auth/token
+  // Strip /api prefix from the URL if present
+  // Vercel might send: /api/spotify/auth/token OR /spotify/auth/token
   // Express expects: /spotify/auth/token
-  if (req.url && req.url.startsWith('/api')) {
-    req.url = req.url.replace('/api', '') || '/';
+  let processedUrl = req.url || '/';
+  if (processedUrl.startsWith('/api/')) {
+    processedUrl = processedUrl.substring(4); // Remove '/api'
+  } else if (processedUrl.startsWith('/api')) {
+    processedUrl = processedUrl.substring(4) || '/'; // Remove '/api'
+  }
+  // If URL doesn't start with '/', add it
+  if (!processedUrl.startsWith('/')) {
+    processedUrl = '/' + processedUrl;
   }
 
-  console.log('After stripping:', req.url);
+  req.url = processedUrl;
+  console.log('After processing, URL:', req.url);
 
   return new Promise((resolve, reject) => {
     app(req as any, res as any, (err: any) => {
