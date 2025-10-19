@@ -81,7 +81,7 @@ function App() {
               <Route path="/chat" element={<Chat />} />
               {/* Hot Takes Game */}
               <Route path="/games/hottakes/anim" element={<HotTakesAnim />} />
-              <Route path="/games/hottakes/chat" element={<HotTakesChat />} />
+              <Route path="/games/hottakes/chat" element={<Chat />} />
               {/* Emoji Story Game */}
               <Route path="/games/emojistory/anim" element={<EmojiStoryAnim />} />
               <Route path="/games/emojistory/chat" element={<EmojiStoryChat />} />
