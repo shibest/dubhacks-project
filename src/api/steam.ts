@@ -1,7 +1,7 @@
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
 
 export const getSteamData = async <T = any>(endpoint: string): Promise<T> => {
-  const response = await fetch(`${BACKEND_URL}/api/steam${endpoint}`);
+  const response = await fetch(`${BACKEND_URL}/steam${endpoint}`);
 
   if (!response.ok) {
     throw new Error('Failed to fetch Steam data');
