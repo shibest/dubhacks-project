@@ -164,3 +164,23 @@ export async function generateGameResponse(gamePrompt: string, personality: stri
     throw error;
   }
 }
+
+export async function callGemini(prompt: string): Promise<string> {
+  try {
+    const gemini = await ai.models.generateContent({
+      model: "gemini-2.0-flash-lite",
+      contents: prompt,
+    });
+
+    const response = gemini.text;
+
+    if (!response) {
+      throw new Error('No game response generated');
+    }
+
+    return response.trim();
+  } catch (error) {
+    console.error('Error generating response:', error);
+    throw error;
+  }
+}
