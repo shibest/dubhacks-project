@@ -245,10 +245,9 @@ export default function Connections() {
 
   return (
     <div
-      className={`min-h-screen bg-gradient-to-br from-[hsl(260,40%,15%)] via-[hsl(210,14%,11%)] to-[hsl(260,30%,12%)] flex items-center justify-center px-4 transition-opacity duration-500 ${
+      className={`min-h-screen bg-gradient-to-br from-[hsl(260,40%,15%)] via-[hsl(210,14%,11%)] to-[hsl(260,30%,12%)] flex items-start justify-center px-4 pt-16 transition-opacity duration-500 ${
         isVisible ? "opacity-100" : "opacity-0"
       }`}
-      style={{ paddingTop: 0 }}
     >
       <div className="w-full max-w-2xl py-4">
         {/* Header */}

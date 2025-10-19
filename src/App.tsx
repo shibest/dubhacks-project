@@ -42,7 +42,7 @@ function App() {
               {/* Login screen */}
               <Route path="/login" element={<Login />} />
               {/* Connections screen after auth */}
-              <Route path="/profile" element={<Connections />} />
+              <Route path="/connections" element={<Connections />} />
               {/* Dashboard (main app) */}
               <Route path="/dashboard" element={<Index />} />
               {/* /home also shows dashboard */}
