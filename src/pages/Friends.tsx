@@ -4,6 +4,7 @@ import Header from "@/components/Header";
 import BottomTaskbar from "@/components/BottomTaskbar";
 import { Profile } from "@/components/ProfileCard";
 import { getCurrentUserId, getFriends, removeFriend } from "@/lib/friends";
+import { updateFriendsCount } from "@/lib/leaderboard";
 
 const SAMPLE_FRIENDS: Profile[] = [
   {
@@ -81,6 +82,9 @@ export default function Friends() {
             mutualFriends: 0 // Could be calculated later
           }));
         setFriends(profiles);
+
+        // Update leaderboard friends count
+        updateFriendsCount(profiles.length);
       } catch (error) {
         console.error('Error loading friends:', error);
       }
@@ -107,6 +111,8 @@ export default function Friends() {
       navigate("/games");
     } else if (tab === "settings") {
       navigate("/settings");
+    } else if (tab === "leaderboard") {
+      navigate("/leaderboard");
     } else {
       console.log("Navigate to:", tab);
     }
@@ -123,7 +129,11 @@ export default function Friends() {
     const success = await removeFriend(currentUserId, friendId);
     if (success) {
       // Immediately remove from friends list
-      setFriends(prev => prev.filter(friend => friend.id !== friendId));
+      const newFriends = friends.filter(friend => friend.id !== friendId);
+      setFriends(newFriends);
+
+      // Update leaderboard friends count
+      updateFriendsCount(newFriends.length);
       // The removed friend will now appear back in the dashboard when refreshed
     }
   };
