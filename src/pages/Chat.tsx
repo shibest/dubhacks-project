@@ -55,33 +55,8 @@ export default function Chat() {
       loadFriendData();
     } else {
       setIsFriendChat(false);
-      // Game mode initialization
-      const getGamePrompt = async () => {
-        try {
-          const prompt = await generateGamePrompt('hot_takes');
-
-          // Update the first message with the AI prompt
-          setMessages([{
-            id: '1',
-            text: prompt,
-            sender: 'other',
-            timestamp: new Date(),
-            type: 'text'
-          }]);
-        } catch (error) {
-          console.error('Error generating game prompt:', error);
-
-          // Update with error message
-          setMessages([{
-            id: '1',
-            text: 'Sorry, I had trouble loading the game. Please try again!',
-            sender: 'other',
-            timestamp: new Date(),
-            type: 'text'
-          }]);
-        }
-      }
-      getGamePrompt();
+      // Game mode initialization - don't initialize here, let the game handle it
+      setMessages([]);
     }
   }, [friendId]);
   const [newMessage, setNewMessage] = useState('');
