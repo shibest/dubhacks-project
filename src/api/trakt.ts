@@ -1,4 +1,4 @@
-const BACKEND_URL = 'https://myceli.us';
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
 
 export const getTraktData = async <T = any>(endpoint: string, accessToken: string | null): Promise<T> => {
   const response = await fetch(`${BACKEND_URL}/api/trakt${endpoint}`, {

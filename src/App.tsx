@@ -12,10 +12,6 @@ import Index from './pages/Index';
 
 // Trakt routes
 import UserWatchlist from './pages/UserWatchlist';
-import ProfileSelect from './pages/ProfileSelect';
-
-// Spotify routes
-import SpotifyProfile from './pages/SpotifyProfile';
 
 // Unified callback component
 import ApiCallback from './components/ApiCallback';
@@ -43,20 +39,19 @@ function App() {
               {/* Auth screen after intro */}
               <Route path="/auth" element={<Auth />} />
               {/* Connections screen after auth */}
-              <Route path="/connections" element={<Connections />} />
+              <Route path="/profile" element={<Connections />} />
               {/* Dashboard (main app) */}
               <Route path="/dashboard" element={<Index />} />
               {/* /home also shows dashboard */}
               <Route path="/home" element={<Index />} />
 
               {/* Trakt routes */}
-              <Route path="/trakt/connect" element={<ProfileSelect />} />
               <Route path="/callback" element={<ApiCallback service="trakt" />} />
               <Route path="/trakt/watchlist" element={<UserWatchlist />} />
 
               {/* Spotify routes */}
               <Route path="/spotify/callback" element={<ApiCallback service="spotify" />} />
-              <Route path="/spotify/profile" element={<SpotifyProfile />} />
+
             </Routes>
           </BrowserRouter>
         </ApiProvider>

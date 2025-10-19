@@ -62,12 +62,16 @@ interface TokenResponse {
 }
 
 export const ApiProvider = ({ children }: ApiProviderProps) => {
+  // Get URLs from environment variables
+  const APP_URL = import.meta.env.VITE_APP_URL || 'http://localhost:5173';
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+
   // Service configurations
   const services: Record<ServiceType, ServiceConfig> = {
     spotify: {
       clientId: import.meta.env.VITE_SPOTIFY_CLIENT_ID,
-      redirectUri: 'https://myceli.us/spotify/callback',
-      backendUrl: 'https://myceli.us',
+      redirectUri: `${APP_URL}/spotify/callback`,
+      backendUrl: BACKEND_URL,
       authUrl: 'https://accounts.spotify.com/authorize',
       scopes: [
         'user-read-private',
@@ -84,8 +88,8 @@ export const ApiProvider = ({ children }: ApiProviderProps) => {
     },
     trakt: {
       clientId: import.meta.env.VITE_TRAKT_CLIENT_ID,
-      redirectUri: 'https://myceli.us/callback',
-      backendUrl: 'https://myceli.us',
+      redirectUri: `${APP_URL}/callback`,
+      backendUrl: BACKEND_URL,
       authUrl: 'https://trakt.tv/oauth/authorize'
     }
   };

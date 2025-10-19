@@ -9,15 +9,21 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Environment-based configuration
+const APP_URL = process.env.VITE_APP_URL || 'http://localhost:5173';
+
 const TRAKT_CLIENT_ID = process.env.TRAKT_CLIENT_ID;
 const TRAKT_CLIENT_SECRET = process.env.TRAKT_CLIENT_SECRET;
-const TRAKT_REDIRECT_URI = 'https://myceli.us/callback';
+const TRAKT_REDIRECT_URI = `${APP_URL}/callback`;
 const TRAKT_API_BASE = 'https://api.trakt.tv';
 
 const SPOTIFY_CLIENT_ID = process.env.SPOTIFY_CLIENT_ID;
 const SPOTIFY_CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET;
-const SPOTIFY_REDIRECT_URI = 'https://myceli.us/spotify/callback';
+const SPOTIFY_REDIRECT_URI = `${APP_URL}/spotify/callback`;
 const SPOTIFY_API_BASE = 'https://api.spotify.com/v1';
+
+const STEAM_API_KEY = process.env.STEAM_API_KEY;
+const STEAM_API_BASE = 'https://api.steampowered.com';
 
 interface TokenRequestBody {
   code?: string;
@@ -208,6 +214,198 @@ app.use('/api/spotify', async (req: Request, res: Response) => {
   }
 });
 
+// Steam API Proxy Routes
+// Note: Steam uses Web API with API key, not OAuth like Spotify/Trakt
+
+// Resolve vanity URL to Steam ID64
+app.get('/api/steam/resolve/:vanityUrl', async (req: Request, res: Response) => {
+  const { vanityUrl } = req.params;
+  console.log(`Steam API: Resolving vanity URL: ${vanityUrl}`);
+
+  if (!STEAM_API_KEY) {
+    console.error('Steam API Key is missing!');
+    res.status(500).json({ error: 'Steam API Key not configured' });
+    return;
+  }
+
+  try {
+    const response = await axios.get(`${STEAM_API_BASE}/ISteamUser/ResolveVanityURL/v0001/`, {
+      params: {
+        key: STEAM_API_KEY,
+        vanityurl: vanityUrl
+      }
+    });
+
+    console.log('Steam API: Vanity URL resolved');
+    res.json(response.data);
+  } catch (error) {
+    const axiosError = error as AxiosError;
+    console.error('Steam API error:', axiosError.response?.data || axiosError.message);
+    res.status(axiosError.response?.status || 500).json({
+      error: axiosError.response?.data || 'API request failed'
+    });
+  }
+});
+
+// Get player summaries (profile info)
+app.get('/api/steam/player/summaries/:steamId', async (req: Request, res: Response) => {
+  const { steamId } = req.params;
+  console.log(`Steam API: Fetching profile for Steam ID: ${steamId}`);
+
+  if (!STEAM_API_KEY) {
+    console.error('Steam API Key is missing!');
+    res.status(500).json({ error: 'Steam API Key not configured' });
+    return;
+  }
+
+  try {
+    const url = `${STEAM_API_BASE}/ISteamUser/GetPlayerSummaries/v0002/`;
+    console.log(`Steam API: Requesting ${url}`);
+
+    const response = await axios.get(url, {
+      params: {
+        key: STEAM_API_KEY,
+        steamids: steamId
+      }
+    });
+
+    console.log('Steam API: Profile fetched successfully');
+    res.json(response.data);
+  } catch (error) {
+    const axiosError = error as AxiosError;
+    console.error('Steam API error:', axiosError.response?.data || axiosError.message);
+    res.status(axiosError.response?.status || 500).json({
+      error: axiosError.response?.data || 'API request failed'
+    });
+  }
+});
+
+// Get owned games
+app.get('/api/steam/player/games/:steamId', async (req: Request, res: Response) => {
+  const { steamId } = req.params;
+  const { include_appinfo, include_played_free_games } = req.query;
+
+  try {
+    const response = await axios.get(`${STEAM_API_BASE}/IPlayerService/GetOwnedGames/v0001/`, {
+      params: {
+        key: STEAM_API_KEY,
+        steamid: steamId,
+        include_appinfo: include_appinfo || '1',
+        include_played_free_games: include_played_free_games || '1',
+        format: 'json'
+      }
+    });
+
+    res.json(response.data);
+  } catch (error) {
+    const axiosError = error as AxiosError;
+    console.error('Steam API error:', axiosError.response?.data || axiosError.message);
+    res.status(axiosError.response?.status || 500).json({
+      error: axiosError.response?.data || 'API request failed'
+    });
+  }
+});
+
+// Get recently played games
+app.get('/api/steam/player/recent/:steamId', async (req: Request, res: Response) => {
+  const { steamId } = req.params;
+  const { count } = req.query;
+
+  try {
+    const response = await axios.get(`${STEAM_API_BASE}/IPlayerService/GetRecentlyPlayedGames/v0001/`, {
+      params: {
+        key: STEAM_API_KEY,
+        steamid: steamId,
+        count: count || '10',
+        format: 'json'
+      }
+    });
+
+    res.json(response.data);
+  } catch (error) {
+    const axiosError = error as AxiosError;
+    console.error('Steam API error:', axiosError.response?.data || axiosError.message);
+    res.status(axiosError.response?.status || 500).json({
+      error: axiosError.response?.data || 'API request failed'
+    });
+  }
+});
+
+// Get player achievements for a game
+app.get('/api/steam/player/achievements/:steamId/:appId', async (req: Request, res: Response) => {
+  const { steamId, appId } = req.params;
+
+  try {
+    const response = await axios.get(`${STEAM_API_BASE}/ISteamUserStats/GetPlayerAchievements/v0001/`, {
+      params: {
+        key: STEAM_API_KEY,
+        steamid: steamId,
+        appid: appId,
+        format: 'json'
+      }
+    });
+
+    res.json(response.data);
+  } catch (error) {
+    const axiosError = error as AxiosError;
+    console.error('Steam API error:', axiosError.response?.data || axiosError.message);
+    res.status(axiosError.response?.status || 500).json({
+      error: axiosError.response?.data || 'API request failed'
+    });
+  }
+});
+
+// Get user stats for a game
+app.get('/api/steam/player/stats/:steamId/:appId', async (req: Request, res: Response) => {
+  const { steamId, appId } = req.params;
+
+  try {
+    const response = await axios.get(`${STEAM_API_BASE}/ISteamUserStats/GetUserStatsForGame/v0002/`, {
+      params: {
+        key: STEAM_API_KEY,
+        steamid: steamId,
+        appid: appId,
+        format: 'json'
+      }
+    });
+
+    res.json(response.data);
+  } catch (error) {
+    const axiosError = error as AxiosError;
+    console.error('Steam API error:', axiosError.response?.data || axiosError.message);
+    res.status(axiosError.response?.status || 500).json({
+      error: axiosError.response?.data || 'API request failed'
+    });
+  }
+});
+
+// Get friend list
+app.get('/api/steam/player/friends/:steamId', async (req: Request, res: Response) => {
+  const { steamId } = req.params;
+
+  try {
+    const response = await axios.get(`${STEAM_API_BASE}/ISteamUser/GetFriendList/v0001/`, {
+      params: {
+        key: STEAM_API_KEY,
+        steamid: steamId,
+        relationship: 'friend',
+        format: 'json'
+      }
+    });
+
+    res.json(response.data);
+  } catch (error) {
+    const axiosError = error as AxiosError;
+    console.error('Steam API error:', axiosError.response?.data || axiosError.message);
+    res.status(axiosError.response?.status || 500).json({
+      error: axiosError.response?.data || 'API request failed'
+    });
+  }
+});
+
 app.listen(5000, () => {
   console.log('Backend server running on port 5000');
+  console.log('Steam API Key:', STEAM_API_KEY ? 'Loaded ✓' : 'Missing ✗');
+  console.log('Spotify Client ID:', SPOTIFY_CLIENT_ID ? 'Loaded ✓' : 'Missing ✗');
+  console.log('Trakt Client ID:', TRAKT_CLIENT_ID ? 'Loaded ✓' : 'Missing ✗');
 });

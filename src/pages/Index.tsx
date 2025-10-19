@@ -23,8 +23,7 @@ export default function Index() {
   };
 
   const handleProfileClick = () => {
-    // Profile button action
-    console.log("Profile clicked");
+    navigate("/connect");
   };
 
   const handleNavigate = (tab: string) => {
