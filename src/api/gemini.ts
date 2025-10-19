@@ -185,6 +185,60 @@ export async function callGemini(prompt: string): Promise<string> {
   }
 }
 
+// Calculate similarity between user profile and a candidate profile
+export async function calculateProfileSimilarity(
+  userProfile: {
+    hobbies: string;
+    musicGenres: string[];
+    favoriteGames: string[];
+    favoriteShows: string[];
+  },
+  candidateProfile: {
+    username: string;
+    personality: string;
+    interests: string[];
+  }
+): Promise<number> {
+  try {
+    const prompt = `You are a profile matching algorithm. Compare these two profiles and return ONLY a similarity score from 0-100 (where 100 is extremely similar, 0 is completely different).
+
+User Profile:
+- Hobbies: ${userProfile.hobbies || 'Not specified'}
+- Music Genres: ${userProfile.musicGenres.join(', ') || 'None'}
+- Favorite Games: ${userProfile.favoriteGames.join(', ') || 'None'}
+- Favorite Shows: ${userProfile.favoriteShows.join(', ') || 'None'}
+
+Candidate Profile (${candidateProfile.username}):
+- Personality: ${candidateProfile.personality}
+- Interests: ${candidateProfile.interests.join(', ')}
+
+Consider:
+- Overlap in interests, hobbies, entertainment preferences
+- Personality compatibility with user's interests
+- Potential for meaningful connection
+
+Return ONLY the number (0-100), nothing else.`;
+
+    const response = await ai.models.generateContent({
+      model: "gemini-2.0-flash-lite",
+      contents: prompt,
+    });
+
+    const scoreText = response.text?.trim() || '50';
+    const score = parseInt(scoreText);
+
+    if (isNaN(score) || score < 0 || score > 100) {
+      console.warn('Invalid similarity score:', scoreText);
+      return 50; // Default to neutral if parsing fails
+    }
+
+    return score;
+  } catch (error) {
+    console.error('Error calculating profile similarity:', error);
+    return 50; // Return neutral score on error
+  }
+}
+
 // Generate a hot take response based on a user's personality
 export async function generatePersonalityHotTake(
   gamePrompt: string,

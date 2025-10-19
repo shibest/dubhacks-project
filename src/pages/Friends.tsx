@@ -6,49 +6,6 @@ import { Profile } from "@/components/ProfileCard";
 import { getCurrentUserId, getFriends, removeFriend } from "@/lib/friends";
 import { updateFriendsCount } from "@/lib/leaderboard";
 
-const SAMPLE_FRIENDS: Profile[] = [
-  {
-    id: "1",
-    name: "Alex Rivera",
-    username: "alexrivera",
-    avatar: "AR",
-    bio: "Mycology enthusiast and nature explorer. Always discovering new things.",
-    mutualFriends: 3,
-  },
-  {
-    id: "2",
-    name: "Jordan Chen",
-    username: "jordanchen",
-    avatar: "JC",
-    bio: "Digital artist and creative thinker. Building beautiful things online.",
-    mutualFriends: 5,
-  },
-  {
-    id: "3",
-    name: "Sam Taylor",
-    username: "samtaylor",
-    avatar: "ST",
-    bio: "Tech lover and lifelong learner. Coffee addict ☕",
-    mutualFriends: 2,
-  },
-  {
-    id: "4",
-    name: "Morgan Lee",
-    username: "morganlee",
-    avatar: "ML",
-    bio: "Game developer and streamer. Let's build something amazing!",
-    mutualFriends: 8,
-  },
-  {
-    id: "5",
-    name: "Casey Kim",
-    username: "caseykim",
-    avatar: "CK",
-    bio: "Environmental scientist passionate about sustainability.",
-    mutualFriends: 1,
-  },
-];
-
 export default function Friends() {
   const navigate = useNavigate();
   const [isVisible, setIsVisible] = useState(false);
@@ -68,20 +25,24 @@ export default function Friends() {
         const friendsData = await getFriends(currentUserId);
         // Convert User[] to Profile[] format
         const profiles: Profile[] = friendsData
-          .filter(user => {
-            if (selectedCommunity === "All Communities") return true;
-            // Filter by community - users are now assigned communities randomly
-            return (user as any).community === selectedCommunity;
-          })
           .map(user => ({
             id: user.id,
             name: user.username, // Using username as name for now
             username: user.username,
             avatar: user.username.substring(0, 2).toUpperCase(),
             bio: `Interests: ${user.interests.join(', ')}`,
-            mutualFriends: 0 // Could be calculated later
+            mutualFriends: 0, // Could be calculated later
+            communities: (user as any).communities || []
           }));
-        setFriends(profiles);
+
+        // Apply community filter
+        const filteredProfiles = selectedCommunity === "All Communities"
+          ? profiles
+          : profiles.filter(profile =>
+              profile.communities?.includes(selectedCommunity)
+            );
+
+        setFriends(filteredProfiles);
 
         // Update leaderboard friends count
         updateFriendsCount(profiles.length);
